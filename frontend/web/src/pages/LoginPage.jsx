@@ -70,6 +70,11 @@ const LoginPage = () => {
             <p className="font-nunito text-xs text-mesh-disabled">
               ESP32 Mesh Ağı · Afet Koordinasyon Sistemi
             </p>
+            {import.meta.env.DEV && (
+              <p className="font-nunito text-xs text-mesh-warning mt-2">
+                🔧 Dev: <strong>test</strong> / <strong>test</strong>
+              </p>
+            )}
           </div>
         </div>
       </div>

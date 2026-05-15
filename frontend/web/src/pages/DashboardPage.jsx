@@ -16,7 +16,7 @@ const DashboardPage = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0">
+    <div className="relative w-full" style={{ height: '100%' }}>
       <MapContainer mapRef={mapRef} />
       <MapFilters />
     </div>

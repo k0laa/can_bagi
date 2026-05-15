@@ -1,26 +1,20 @@
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-  { to: '/',         icon: '🗺️',  label: 'Harita' },
-  { to: '/tasks',    icon: '✅',  label: 'Görevler' },
-  { to: '/nodes',    icon: '📡',  label: 'Node Durumu' },
-  { to: '/assembly', icon: '📍',  label: 'Toplanma Noktaları' },
+  { to: '/', icon: '🗺️', label: 'Harita' },
+  { to: '/tasks', icon: '✅', label: 'Görevler' },
+  { to: '/nodes', icon: '📡', label: 'Node Durumu' },
+  { to: '/assembly', icon: '📍', label: 'Toplanma Noktaları' },
 ];
 
-const SidebarNav = ({ isOpen }) => {
+const SidebarNav = () => {
   return (
-    <div
-      className={`
-        absolute left-0 top-0 h-full z-20
-        bg-mesh-card/95 backdrop-blur border-r border-mesh-disabled
-        transition-all duration-300 flex flex-col
-        ${isOpen ? 'w-56' : 'w-0 overflow-hidden'}
-      `}
-    >
+    <div className="w-56 shrink-0 h-full bg-mesh-card border-r border-mesh-disabled flex flex-col">
       <div className="p-4 border-b border-mesh-disabled">
         <span className="font-bebas text-2xl text-mesh-accent tracking-wider">
           MeshAid
         </span>
+        <p className="font-nunito text-xs text-mesh-muted mt-0.5">Komuta Merkezi</p>
       </div>
 
       <nav className="flex-1 p-2 flex flex-col gap-1 mt-2">

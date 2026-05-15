@@ -6,31 +6,38 @@ import SosList from './SosList';
 import ToastContainer from '../ui/Toast';
 
 const PageLayout = ({ wsStatus }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sosListOpen, setSosListOpen] = useState(true);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-mesh-bg">
-      <TopBar
-        onToggleSidebar={() => setSidebarOpen((v) => !v)}
-        wsStatus={wsStatus}
-      />
+    <div className="flex w-screen h-screen overflow-hidden bg-mesh-bg">
+      {/* Sol sabit sidebar */}
+      <SidebarNav />
 
-      <SidebarNav isOpen={sidebarOpen} />
+      {/* Sağ ana alan */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Üst bar */}
+        <TopBar wsStatus={wsStatus} />
 
-      <SosList
-        isOpen={sosListOpen}
-        onToggle={() => setSosListOpen((v) => !v)}
-      />
+        {/* İçerik alanı */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Sayfa içeriği */}
+          <div className="flex-1 overflow-y-auto relative">
+            <Outlet context={{ sosListOpen }} />
+          </div>
 
-      <div className="absolute inset-0 top-14 overflow-auto">
-        <Outlet context={{ sidebarOpen, sosListOpen }} />
+          {/* Sağ SOS listesi */}
+          <SosList
+            isOpen={sosListOpen}
+            onToggle={() => setSosListOpen((v) => !v)}
+          />
+        </div>
       </div>
 
       {!sosListOpen && (
         <button
           onClick={() => setSosListOpen(true)}
-          className="fixed right-4 bottom-6 z-30 bg-mesh-danger text-white rounded-full px-4 py-2 font-bebas text-sm shadow-lg hover:bg-red-600 transition-colors"
+          style={{ zIndex: 1100 }}
+          className="fixed right-4 bottom-6 bg-mesh-danger text-white rounded-full px-4 py-2 font-bebas text-sm shadow-lg hover:bg-red-600 transition-colors"
         >
           📋 Çağrılar
         </button>

@@ -29,8 +29,8 @@ const SosList = ({ isOpen, onToggle }) => {
   return (
     <div
       className={`
-        absolute right-0 top-14 h-[calc(100%-3.5rem)] z-20
-        bg-mesh-card/95 backdrop-blur border-l border-mesh-disabled
+        shrink-0 h-full
+        bg-mesh-card border-l border-mesh-disabled
         transition-all duration-300 flex flex-col
         ${isOpen ? 'w-80' : 'w-0 overflow-hidden'}
       `}
@@ -44,8 +44,8 @@ const SosList = ({ isOpen, onToggle }) => {
         <button
           onClick={() => setActiveTab('sos')}
           className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${activeTab === 'sos'
-              ? 'text-mesh-danger border-b-2 border-mesh-danger'
-              : 'text-mesh-muted hover:text-white'
+            ? 'text-mesh-danger border-b-2 border-mesh-danger'
+            : 'text-mesh-muted hover:text-white'
             }`}
         >
           SOS ({sosList.length})
@@ -53,8 +53,8 @@ const SosList = ({ isOpen, onToggle }) => {
         <button
           onClick={() => setActiveTab('requests')}
           className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${activeTab === 'requests'
-              ? 'text-mesh-accent border-b-2 border-mesh-accent'
-              : 'text-mesh-muted hover:text-white'
+            ? 'text-mesh-accent border-b-2 border-mesh-accent'
+            : 'text-mesh-muted hover:text-white'
             }`}
         >
           Talepler ({requestList.length})
