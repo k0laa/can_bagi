@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/home/screens/confirmation_screen.dart';
+import '../../features/home/screens/sos_error_screen.dart';
+import '../../features/home/services/sos_service.dart';
 import '../../features/help/screens/help_screen.dart';
 import '../../features/tasks/screens/tasks_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
@@ -14,13 +17,33 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
+      // Tam ekran rotalar (bottom nav yok)
+      GoRoute(
+        path: '/confirmation',
+        builder: (context, state) {
+          final response = state.extra as SosResponse;
+          return ConfirmationScreen(response: response);
+        },
+      ),
+      GoRoute(
+        path: '/sos-error',
+        builder: (context, state) {
+          final error = state.extra as Exception;
+          return SosErrorScreen(
+            message:  error.toString().replaceFirst('Exception: ', ''),
+            onRetry:  () async => context.go('/'),
+          );
+        },
+      ),
+
+      // Shell rotalar (bottom nav ile)
       ShellRoute(
         builder: (context, state, child) => _ScaffoldWithNav(child: child),
         routes: [
-          GoRoute(path: '/',       builder: (_, __) => const HomeScreen()),
-          GoRoute(path: '/help',   builder: (_, __) => const HelpScreen()),
-          GoRoute(path: '/tasks',  builder: (_, __) => const TasksScreen()),
-          GoRoute(path: '/profile',builder: (_, __) => const ProfileScreen()),
+          GoRoute(path: '/',        builder: (_, __) => const HomeScreen()),
+          GoRoute(path: '/help',    builder: (_, __) => const HelpScreen()),
+          GoRoute(path: '/tasks',   builder: (_, __) => const TasksScreen()),
+          GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
         ],
       ),
     ],
@@ -41,7 +64,6 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // İlk açılışta konum izni diyaloğu göster
     final locProvider = context.read<LocationProvider>();
     if (!locProvider.permissionDialogShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,13 +72,15 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
     }
   }
 
-  void _showLocationPermissionDialog(BuildContext context, LocationProvider loc) {
+  void _showLocationPermissionDialog(
+      BuildContext context, LocationProvider loc) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1B2E45),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           '📍 Konum İzni',
           style: TextStyle(
@@ -67,7 +91,8 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
           ),
         ),
         content: const Text(
-          'Acil SOS için konumunuz gereklidir. Kurtarma ekipleri sizi daha hızlı bulabilir.',
+          'Acil SOS için konumunuz gereklidir. '
+          'Kurtarma ekipleri sizi daha hızlı bulabilir.',
           style: TextStyle(
             fontFamily: 'Nunito',
             fontSize: 14,
@@ -79,7 +104,8 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text(
               'Şimdi Değil',
-              style: TextStyle(color: Color(0xFF8899AA), fontFamily: 'Nunito'),
+              style: TextStyle(
+                  color: Color(0xFF8899AA), fontFamily: 'Nunito'),
             ),
           ),
           ElevatedButton(
@@ -89,7 +115,8 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF6B35),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text(
               'İzin Ver',
