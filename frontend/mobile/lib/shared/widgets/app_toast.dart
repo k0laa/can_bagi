@@ -12,7 +12,7 @@ class AppToast {
     Duration duration = const Duration(seconds: 3),
   }) {
     final color = _colorFor(type);
-    final icon  = _iconFor(type);
+    final icon = _iconFor(type);
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -40,7 +40,7 @@ class AppToast {
                     fontFamily: 'Nunito',
                     fontSize: 14,
                     color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -53,19 +53,27 @@ class AppToast {
 
   static Color _colorFor(AppToastType type) {
     switch (type) {
-      case AppToastType.success: return AppColors.success;
-      case AppToastType.error:   return AppColors.danger;
-      case AppToastType.warning: return AppColors.warning;
-      case AppToastType.info:    return AppColors.info;
+      case AppToastType.success:
+        return AppColors.success;
+      case AppToastType.error:
+        return AppColors.danger;
+      case AppToastType.warning:
+        return AppColors.warning;
+      case AppToastType.info:
+        return AppColors.info;
     }
   }
 
   static IconData _iconFor(AppToastType type) {
     switch (type) {
-      case AppToastType.success: return Icons.check_circle_outline;
-      case AppToastType.error:   return Icons.error_outline;
-      case AppToastType.warning: return Icons.warning_amber_outlined;
-      case AppToastType.info:    return Icons.info_outline;
+      case AppToastType.success:
+        return Icons.check_circle_outline;
+      case AppToastType.error:
+        return Icons.error_outline;
+      case AppToastType.warning:
+        return Icons.warning_amber_outlined;
+      case AppToastType.info:
+        return Icons.info_outline;
     }
   }
 }

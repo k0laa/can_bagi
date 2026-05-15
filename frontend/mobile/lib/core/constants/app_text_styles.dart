@@ -38,7 +38,7 @@ class AppTextStyles {
   static TextStyle body = GoogleFonts.nunito(
     fontSize: 16,
     color: AppColors.textPrimary,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
   );
 
   static TextStyle caption = GoogleFonts.nunito(
