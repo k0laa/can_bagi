@@ -43,17 +43,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Font dosyaları assets/fonts/ altına eklenince aşağıdaki bloğu uncomment et
-  # ve `flutter pub get` çalıştır. Detaylar için assets/fonts/.gitkeep'e bak.
-  #
-  # fonts:
-  #   - family: Bebas Neue
-  #     fonts:
-  #       - asset: assets/fonts/BebasNeue-Regular.ttf
-  #   - family: Nunito
-  #     fonts:
-  #       - asset: assets/fonts/Nunito-Regular.ttf
-  #       - asset: assets/fonts/Nunito-SemiBold.ttf
-  #         weight: 600
-  #       - asset: assets/fonts/Nunito-Bold.ttf
-  #         weight: 700
+  fonts:
+    - family: Bebas Neue
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
