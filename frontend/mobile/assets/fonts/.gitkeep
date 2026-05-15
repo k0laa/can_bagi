@@ -1,0 +1,13 @@
+# Font dosyalarını buraya koyun:
+#
+# - BebasNeue-Regular.ttf
+# - Nunito-Regular.ttf
+# - Nunito-SemiBold.ttf
+# - Nunito-Bold.ttf
+#
+# Kaynaklar:
+#   Bebas Neue: https://fonts.google.com/specimen/Bebas+Neue
+#   Nunito:     https://fonts.google.com/specimen/Nunito
+#
+# Dosyaları ekledikten sonra pubspec.yaml'daki `fonts:` bloğunu uncomment edin
+# ve `flutter pub get` çalıştırın.
