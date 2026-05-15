@@ -59,15 +59,23 @@ class _ScaffoldWithNav extends StatefulWidget {
 }
 
 class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
-  int _currentIndex = 0;
+  bool _dialogShown = false;
+
+  int _indexFromLocation(String loc) {
+    if (loc.startsWith('/help'))    return 1;
+    if (loc.startsWith('/tasks'))   return 2;
+    if (loc.startsWith('/profile')) return 3;
+    return 0;
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final locProvider = context.read<LocationProvider>();
-    if (!locProvider.permissionDialogShown) {
+    if (!locProvider.permissionDialogShown && !_dialogShown) {
+      _dialogShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showLocationPermissionDialog(context, locProvider);
+        if (mounted) _showLocationPermissionDialog(context, locProvider);
       });
     }
   }
@@ -134,12 +142,13 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
 
   @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+    final currentIndex = _indexFromLocation(location);
     return Scaffold(
       body: widget.child,
       bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
+        currentIndex: currentIndex,
         onTap: (index) {
-          setState(() => _currentIndex = index);
           switch (index) {
             case 0: context.go('/');        break;
             case 1: context.go('/help');    break;

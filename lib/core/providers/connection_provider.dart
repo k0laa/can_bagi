@@ -10,6 +10,7 @@ enum ConnectionType { internet, esp32, none }
 class ConnectionProvider extends ChangeNotifier {
   ConnectionType _type = ConnectionType.none;
   Timer? _timer;
+  StreamSubscription? _connectivitySub;
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 2),
     receiveTimeout: const Duration(seconds: 2),
@@ -34,7 +35,7 @@ class ConnectionProvider extends ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 5), (_) => _checkConnection());
 
     // Bağlantı değişikliklerini dinle
-    Connectivity().onConnectivityChanged.listen((_) => _checkConnection());
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((_) => _checkConnection());
   }
 
   Future<void> _checkConnection() async {
@@ -78,6 +79,7 @@ class ConnectionProvider extends ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    _connectivitySub?.cancel();
     _dio.close();
     super.dispose();
   }
