@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/home/screens/confirmation_screen.dart';
 import '../../features/home/screens/sos_error_screen.dart';
+import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/register_screen.dart';
 import '../../features/home/services/sos_service.dart';
 import '../../features/help/screens/help_screen.dart';
 import '../../features/tasks/screens/tasks_screen.dart';
@@ -34,6 +36,14 @@ class AppRouter {
             onRetry:  () async => context.go('/'),
           );
         },
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
       ),
 
       // Shell rotalar (bottom nav ile)

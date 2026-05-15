@@ -2,71 +2,94 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
+import '../../features/auth/services/auth_service.dart';
 
-class UserModel {
-  final int    id;
-  final String name;
-  final String surname;
-  final String phone;
-  final String bloodType;
-
-  const UserModel({
-    required this.id,
-    required this.name,
-    required this.surname,
-    required this.phone,
-    required this.bloodType,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-    id:        json['id']         as int,
-    name:      json['name']       as String,
-    surname:   json['surname']    as String,
-    phone:     json['phone']      as String,
-    bloodType: json['blood_type'] as String? ?? '',
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id':         id,
-    'name':       name,
-    'surname':    surname,
-    'phone':      phone,
-    'blood_type': bloodType,
-  };
-}
+export '../../features/auth/models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
+  final AuthService _authService = AuthService();
 
   String?    _token;
   UserModel? _user;
+  bool       _isLoading = false;
 
   AuthProvider(this._prefs) {
     _loadFromStorage();
   }
 
-  String?    get token     => _token;
-  UserModel? get user      => _user;
+  String?    get token      => _token;
+  UserModel? get user       => _user;
   bool       get isLoggedIn => _token != null;
+  bool       get isLoading  => _isLoading;
 
   void _loadFromStorage() {
     _token = _prefs.getString(AppConstants.keyToken);
     final userJson = _prefs.getString(AppConstants.keyUser);
     if (userJson != null) {
       try {
-        _user = UserModel.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+        _user = UserModel.fromJson(
+            jsonDecode(userJson) as Map<String, dynamic>);
       } catch (_) {
         _user = null;
       }
     }
   }
 
-  Future<void> saveAuth(String token, UserModel user) async {
+  Future<void> login(String phone, String password) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final result =
+          await _authService.login(phone: phone, password: password);
+      await _saveAuth(result.token, result.user);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> register(RegisterRequest req) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final result = await _authService.register(req);
+      await _saveAuth(result.token, result.user);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    required String surname,
+    required String bloodType,
+  }) async {
+    if (_token == null) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final updated = await _authService.updateProfile(
+        token:     _token!,
+        name:      name,
+        surname:   surname,
+        bloodType: bloodType,
+      );
+      _user = updated;
+      await _prefs.setString(
+          AppConstants.keyUser, jsonEncode(updated.toJson()));
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _saveAuth(String token, UserModel user) async {
     _token = token;
     _user  = user;
     await _prefs.setString(AppConstants.keyToken, token);
     await _prefs.setString(AppConstants.keyUser, jsonEncode(user.toJson()));
-    notifyListeners();
   }
 
   Future<void> logout() async {
