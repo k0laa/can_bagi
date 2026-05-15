@@ -5,17 +5,17 @@ class AppConstants {
   // Default: Android emülatör host machine (10.0.2.2 = emülatörden bilgisayarın localhost'u)
   static const String apiBaseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.0.2.2:8000',
+    defaultValue: 'http://10.24.6.35:8000',
   );
   static const String wsUrl = String.fromEnvironment(
     'WS_URL',
-    defaultValue: 'ws://10.0.2.2:8000/ws/mobile',
+    defaultValue: 'ws://10.24.6.35:8000/ws/mobile',
   );
 
   // ESP32 — fiziksel telefon ESP32 AP'sine bağlandığında bu sabit IP kullanılır
   static const String esp32BaseUrl = String.fromEnvironment(
     'ESP32_URL',
-    defaultValue: 'http://192.168.4.1',
+    defaultValue: 'http://10.94.25.1',
   );
   static const String esp32PingUrl = '$esp32BaseUrl/ping';
   static const String esp32SosUrl = '$esp32BaseUrl/sos';
