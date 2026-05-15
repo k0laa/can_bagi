@@ -1,0 +1,50 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models import NeedRequest
+from schemas import NeedRequestCreate, NeedRequestResponse
+from websocket.manager import manager
+from websocket.events import NEW_REQUEST
+
+router = APIRouter()
+
+
+@router.post("/", response_model=NeedRequestResponse)
+async def create_need(need: NeedRequestCreate, db: Session = Depends(get_db)):
+    db_need = NeedRequest(**need.model_dump())
+    db.add(db_need)
+    db.commit()
+    db.refresh(db_need)
+
+    await manager.broadcast_to_dashboard(NEW_REQUEST, {
+        "id": db_need.id,
+        "node_id": db_need.node_id,
+        "category": db_need.category,
+        "lat": db_need.lat,
+        "lon": db_need.lon,
+        "people_count": db_need.people_count,
+        "details": db_need.details,
+        "status": db_need.status,
+        "created_at": str(db_need.created_at)
+    })
+
+    return db_need
+
+
+@router.get("/", response_model=list[NeedRequestResponse])
+def get_all_needs(db: Session = Depends(get_db)):
+    return db.query(NeedRequest).all()
+
+
+@router.get("/{need_id}", response_model=NeedRequestResponse)
+def get_need(need_id: int, db: Session = Depends(get_db)):
+    return db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
+
+
+@router.put("/{need_id}/status")
+def update_status(need_id: int, status: str, db: Session = Depends(get_db)):
+    db_need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
+    db_need.status = status
+    db.commit()
+    db.refresh(db_need)
+    return db_need
