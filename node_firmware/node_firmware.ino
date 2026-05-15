@@ -52,6 +52,15 @@ void setupPhoneAPI() {
     if (req->method() == HTTP_OPTIONS) req->send(200);
     else req->send(404);
   });
+  
+  server.on("/ping", HTTP_GET, [](AsyncWebServerRequest *req) {
+    StaticJsonDocument<256> doc;
+    doc["status"]  = "pong";
+    doc["node_id"] = NODE_ID;
+    doc["ip"]      = WiFi.softAPIP().toString(); 
+    String out; serializeJson(doc, out);
+    req->send(200, "application/json", out);
+  });
 
   server.on("/status", HTTP_GET, [](AsyncWebServerRequest *req) {
     StaticJsonDocument<256> doc;
