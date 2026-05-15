@@ -33,6 +33,9 @@ const useMapStore = create((set) => ({
   setSosList: (list) => set({ sosList: list }),
   setRequestList: (list) => set({ requestList: list }),
   setNodeList: (list) => set({ nodeList: list }),
+
+  mapInstance: null,
+  setMapInstance: (map) => set({ mapInstance: map }),
 }));
 
 export default useMapStore;

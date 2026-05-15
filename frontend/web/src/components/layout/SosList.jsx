@@ -8,21 +8,21 @@ const formatTime = (ts) => {
 };
 
 const categoryLabels = {
-  MEDICAL:    '🏥 Tıbbi',
-  RESCUE:     '🚨 Kurtarma',
-  FOOD:       '🍞 Gıda',
-  SHELTER:    '🏕️ Barınma',
-  CLOTHES:    '👕 Giysi',
+  MEDICAL: '🏥 Tıbbi',
+  RESCUE: '🚨 Kurtarma',
+  FOOD: '🍞 Gıda',
+  SHELTER: '🏕️ Barınma',
+  CLOTHES: '👕 Giysi',
   VULNERABLE: '👶 Kırılgan',
 };
 
-const SosList = ({ isOpen, onToggle, mapRef }) => {
+const SosList = ({ isOpen, onToggle }) => {
   const [activeTab, setActiveTab] = useState('sos');
-  const { sosList, requestList } = useMapStore();
+  const { sosList, requestList, mapInstance } = useMapStore();
 
   const flyTo = (lat, lon) => {
-    if (mapRef?.current) {
-      mapRef.current.flyTo([lat, lon], 16);
+    if (mapInstance) {
+      mapInstance.flyTo([lat, lon], 16);
     }
   };
 
@@ -43,21 +43,19 @@ const SosList = ({ isOpen, onToggle, mapRef }) => {
       <div className="flex border-b border-mesh-disabled shrink-0">
         <button
           onClick={() => setActiveTab('sos')}
-          className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${
-            activeTab === 'sos'
+          className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${activeTab === 'sos'
               ? 'text-mesh-danger border-b-2 border-mesh-danger'
               : 'text-mesh-muted hover:text-white'
-          }`}
+            }`}
         >
           SOS ({sosList.length})
         </button>
         <button
           onClick={() => setActiveTab('requests')}
-          className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${
-            activeTab === 'requests'
+          className={`flex-1 py-2.5 font-bebas text-sm tracking-wider transition-colors ${activeTab === 'requests'
               ? 'text-mesh-accent border-b-2 border-mesh-accent'
               : 'text-mesh-muted hover:text-white'
-          }`}
+            }`}
         >
           Talepler ({requestList.length})
         </button>

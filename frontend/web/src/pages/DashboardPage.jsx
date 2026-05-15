@@ -1,14 +1,24 @@
+import { useEffect, useRef } from 'react';
+import MapContainer from '../components/map/MapContainer';
+import MapFilters from '../components/map/MapFilters';
+import useMapStore from '../store/mapStore';
+import { mockSOS, mockRequests, mockNodes, mockAssembly } from '../utils/mockData';
+
 const DashboardPage = () => {
+  const mapRef = useRef(null);
+  const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
+
+  useEffect(() => {
+    setSosList(mockSOS);
+    setRequestList(mockRequests);
+    setNodeList(mockNodes);
+    setAssemblyList(mockAssembly);
+  }, []);
+
   return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="text-center">
-        <p className="font-bebas text-4xl text-mesh-muted tracking-widest">
-          🗺️ HARİTA
-        </p>
-        <p className="font-nunito text-sm text-mesh-disabled mt-2">
-          Faz 2'de Leaflet harita eklenecek
-        </p>
-      </div>
+    <div className="absolute inset-0">
+      <MapContainer mapRef={mapRef} />
+      <MapFilters />
     </div>
   );
 };
