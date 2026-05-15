@@ -21,7 +21,7 @@ class TaskService {
       if (lon != null) queryParams['lon'] = lon;
 
       final res = await _dio.get(
-        '${AppConstants.apiBaseUrl}/tasks/nearby',
+        '${AppConstants.apiBaseUrl}/tasks/',
         queryParameters: queryParams,
         options: options,
       );

@@ -9,7 +9,7 @@ class AppConstants {
   );
   static const String wsUrl = String.fromEnvironment(
     'WS_URL',
-    defaultValue: 'ws://10.0.2.2:8000/ws/dashboard',
+    defaultValue: 'ws://10.0.2.2:8000/ws/mobile',
   );
 
   // ESP32 — fiziksel telefon ESP32 AP'sine bağlandığında bu sabit IP kullanılır
