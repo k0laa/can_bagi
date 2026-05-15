@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/connection_provider.dart';
 
 class SosResponse {
   final String status;
-  final int    id;
+  final int id;
   final String message;
   final String receivedAt;
 
@@ -16,17 +17,18 @@ class SosResponse {
   });
 
   factory SosResponse.fromJson(Map<String, dynamic> json) => SosResponse(
-        status:     json['status']      as String? ?? 'ok',
-        id:         json['id']          as int?    ?? 0,
-        message:    json['message']     as String? ?? 'SOS sinyaliniz alındı.',
-        receivedAt: json['received_at'] as String? ?? DateTime.now().toIso8601String(),
+        status: json['status'] as String? ?? 'ok',
+        id: json['id'] as int? ?? 0,
+        message: json['message'] as String? ?? 'SOS sinyaliniz alındı.',
+        receivedAt:
+            json['received_at'] as String? ?? DateTime.now().toIso8601String(),
       );
 
   /// Backend kapalıyken kullanılacak mock response
   static SosResponse mock() => SosResponse(
-        status:     'ok',
-        id:         999,
-        message:    'SOS sinyaliniz alındı. Kurtarma ekipleri bilgilendirildi.',
+        status: 'ok',
+        id: 999,
+        message: 'SOS sinyaliniz alındı. Kurtarma ekipleri bilgilendirildi.',
         receivedAt: DateTime.now().toIso8601String(),
       );
 }
@@ -48,11 +50,11 @@ class SosService {
     double? lon,
   }) async {
     final payload = {
-      'type':    'SOS',
+      'type': 'SOS',
       'node_id': 'MOBILE',
-      'ts':      DateTime.now().millisecondsSinceEpoch,
-      'lat':     lat,
-      'lon':     lon,
+      'ts': DateTime.now().millisecondsSinceEpoch,
+      'lat': lat,
+      'lon': lon,
     };
 
     // 1. İnternet varsa backend'e gönder
@@ -77,12 +79,13 @@ class SosService {
       );
       return SosResponse.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      // Backend kapalıysa mock response ile devam et
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
+      // Geliştirme sırasında backend kapalıysa mock dön — release'de gerçek hata fırlat
+      if (kDebugMode &&
+          (e.type == DioExceptionType.connectionError ||
+              e.type == DioExceptionType.connectionTimeout)) {
         return SosResponse.mock();
       }
-      rethrow;
+      throw const NoConnectionException('Sunucuya ulaşılamıyor');
     }
   }
 
@@ -98,8 +101,9 @@ class SosService {
       );
       return SosResponse.fromJson(res.data as Map<String, dynamic>);
     } on DioException {
-      // ESP32 yanıt vermezse mock döndür
-      return SosResponse.mock();
+      // Geliştirme sırasında ESP32 yoksa mock dön — release'de gerçek hata fırlat
+      if (kDebugMode) return SosResponse.mock();
+      throw const NoConnectionException('ESP32 yanıt vermiyor');
     }
   }
 }

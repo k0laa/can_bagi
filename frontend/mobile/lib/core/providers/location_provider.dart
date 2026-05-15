@@ -17,13 +17,14 @@ class LocationProvider extends ChangeNotifier {
     _loadState();
   }
 
-  LocationStatus get status         => _status;
-  Position?      get lastPosition   => _lastPosition;
-  bool           get hasPermission  => _status == LocationStatus.granted;
-  bool           get permissionDialogShown => _permissionDialogShown;
+  LocationStatus get status => _status;
+  Position? get lastPosition => _lastPosition;
+  bool get hasPermission => _status == LocationStatus.granted;
+  bool get permissionDialogShown => _permissionDialogShown;
 
   void _loadState() {
-    _permissionDialogShown = _prefs.getBool(AppConstants.keyLocationAsked) ?? false;
+    _permissionDialogShown =
+        _prefs.getBool(AppConstants.keyLocationAsked) ?? false;
     _checkCurrentStatus();
   }
 
@@ -58,18 +59,28 @@ class LocationProvider extends ChangeNotifier {
     return false;
   }
 
-  /// Konum al — timeout sonrası null döner
+  /// Konum al — önce taze fix denenir, başarısızsa son bilinen konuma düşülür.
+  /// SOS senaryosunda enkaz altında GPS fix alınamayabilir; eski konum hiç yoktan iyidir.
   Future<Position?> getCurrentPosition() async {
     if (_status != LocationStatus.granted) return null;
     try {
-      return await Geolocator.getCurrentPosition(
+      final fresh = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           timeLimit: Duration(seconds: AppConstants.locationTimeoutSec),
         ),
       );
+      _lastPosition = fresh;
+      return fresh;
     } catch (_) {
-      return null;
+      // Taze fix alınamadı — son bilinen konuma fallback (cache'ten)
+      try {
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null) _lastPosition = last;
+        return last;
+      } catch (_) {
+        return _lastPosition;
+      }
     }
   }
 
