@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "com.meshaid.meshaid_mobile"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Yerel ortamda kurulu olan NDK sürümü (flutter.ndkVersion default'una düşmesin)
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
