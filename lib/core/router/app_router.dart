@@ -8,6 +8,7 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/home/services/sos_service.dart';
 import '../../features/help/screens/help_screen.dart';
+import '../../features/help/screens/category_form_screen.dart';
 import '../../features/tasks/screens/tasks_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
@@ -23,8 +24,14 @@ class AppRouter {
       GoRoute(
         path: '/confirmation',
         builder: (context, state) {
-          final response = state.extra as SosResponse;
-          return ConfirmationScreen(response: response);
+          final extra = state.extra;
+          if (extra is Map<String, dynamic>) {
+            return ConfirmationScreen(
+              response: extra['response'] as SosResponse,
+              category: extra['category'] as String?,
+            );
+          }
+          return ConfirmationScreen(response: extra as SosResponse);
         },
       ),
       GoRoute(
@@ -51,7 +58,22 @@ class AppRouter {
         builder: (context, state, child) => _ScaffoldWithNav(child: child),
         routes: [
           GoRoute(path: '/',        builder: (_, __) => const HomeScreen()),
-          GoRoute(path: '/help',    builder: (_, __) => const HelpScreen()),
+          GoRoute(
+            path: '/help',
+            builder: (_, __) => const HelpScreen(),
+            routes: [
+              GoRoute(
+                path: 'form',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  return CategoryFormScreen(
+                    categoryId: extra['category'] as String? ?? 'RESCUE',
+                    categoryTitle: extra['title'] as String? ?? 'KURTARMA',
+                  );
+                },
+              ),
+            ],
+          ),
           GoRoute(path: '/tasks',   builder: (_, __) => const TasksScreen()),
           GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
         ],

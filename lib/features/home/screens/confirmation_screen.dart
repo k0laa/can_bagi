@@ -7,7 +7,8 @@ import '../services/sos_service.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   final SosResponse response;
-  const ConfirmationScreen({super.key, required this.response});
+  final String? category;
+  const ConfirmationScreen({super.key, required this.response, this.category});
 
   @override
   State<ConfirmationScreen> createState() => _ConfirmationScreenState();
@@ -49,8 +50,22 @@ class _ConfirmationScreenState extends State<ConfirmationScreen>
     }
   }
 
+  Color _getColor() {
+    switch (widget.category) {
+      case 'SOS': return AppColors.danger;
+      case 'RESCUE': return AppColors.accent;
+      case 'MEDICAL': return Colors.blue;
+      case 'FOOD': return AppColors.success;
+      case 'SHELTER': return Colors.amber;
+      case 'CLOTHES': return Colors.blue;
+      case 'VULNERABLE': return Colors.purple;
+      default: return AppColors.success;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final color = _getColor();
     return PopScope(
       // Geri tuşu direkt ana sayfaya gitsin
       canPop: false,
@@ -73,12 +88,12 @@ class _ConfirmationScreenState extends State<ConfirmationScreen>
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.success.withValues(alpha: 0.15),
-                        border: Border.all(color: AppColors.success, width: 3),
+                        color: color.withValues(alpha: 0.15),
+                        border: Border.all(color: color, width: 3),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.check_rounded,
-                        color: AppColors.success,
+                        color: color,
                         size:  64,
                       ),
                     ),
@@ -89,7 +104,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen>
 
                 Text('Sinyal İletildi',
                     style: AppTextStyles.pageTitle.copyWith(
-                        color: AppColors.success)),
+                        color: color)),
 
                 const SizedBox(height: 16),
 
