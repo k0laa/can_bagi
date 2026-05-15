@@ -36,7 +36,7 @@ class RequestService {
         options.headers = {'Authorization': 'Bearer $token'};
       }
       final res = await _dio.post(
-        '${AppConstants.apiBaseUrl}/request/create',
+        '${AppConstants.apiBaseUrl}/needs/',
         data: payload,
         options: options,
       );
@@ -53,7 +53,7 @@ class RequestService {
   Future<RequestResponse> _postToESP32(Map<String, dynamic> payload) async {
     try {
       final res = await _dio.post(
-        '${AppConstants.esp32BaseUrl}/request',
+        '${AppConstants.esp32BaseUrl}/needs',
         data: payload,
         options: Options(
           sendTimeout: const Duration(seconds: AppConstants.esp32TimeoutSec),

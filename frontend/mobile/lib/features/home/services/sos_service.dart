@@ -74,7 +74,7 @@ class SosService {
   Future<SosResponse> _postToBackend(Map<String, dynamic> payload) async {
     try {
       final res = await _dio.post(
-        '${AppConstants.apiBaseUrl}/mesh/sos',
+        '${AppConstants.apiBaseUrl}/sos/',
         data: payload,
       );
       return SosResponse.fromJson(res.data as Map<String, dynamic>);
