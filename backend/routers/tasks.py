@@ -6,6 +6,7 @@ from schemas import TaskCreate, TaskUpdate, TaskResponse
 from websocket.manager import manager
 from websocket.events import TASK_ASSIGNED, TASK_UPDATED
 from routers.auth import get_coordinator
+from fastapi import APIRouter, Depends, HTTPException
 router = APIRouter()
 
 
@@ -84,3 +85,12 @@ async def complete_task(task_id: int, db: Session = Depends(get_db)):
     })
 
     return db_task
+
+@router.delete("/{task_id}")
+async def delete_task(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
+    db.delete(db_task)
+    db.commit()
+    return {"status": "silindi"}

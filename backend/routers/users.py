@@ -4,7 +4,7 @@ from database import get_db
 from models import User
 from schemas import UserResponse
 from routers.auth import get_current_user
-
+from routers.auth import get_current_user, get_coordinator
 router = APIRouter()
 
 
@@ -35,3 +35,17 @@ def update_profile(
     db.commit()
     db.refresh(user)
     return user
+
+@router.get("/", response_model=list[UserResponse])
+def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_coordinator)):
+    return db.query(User).all()
+
+
+@router.delete("/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user=Depends(get_coordinator)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    db.delete(user)
+    db.commit()
+    return {"status": "silindi"}

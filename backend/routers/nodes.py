@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from websocket.manager import manager
 from models import Node, turkey_time
+from fastapi import APIRouter, Depends, HTTPException
 router = APIRouter()
 
 
@@ -41,6 +42,23 @@ async def receive_data(data: dict, db: Session = Depends(get_db)):
     print("Ham veri:", data)
     await manager.broadcast_to_dashboard("RAW_DATA", data)
     return {"status": "ok"}
+
+@router.get("/{node_id}")
+def get_node(node_id: str, db: Session = Depends(get_db)):
+    node = db.query(Node).filter(Node.node_id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node bulunamadı")
+    return node
+
+
+@router.delete("/{node_id}")
+async def delete_node(node_id: str, db: Session = Depends(get_db)):
+    node = db.query(Node).filter(Node.node_id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node bulunamadı")
+    db.delete(node)
+    db.commit()
+    return {"status": "silindi"}
 
 
 @router.get("/")

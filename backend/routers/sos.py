@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import SOS
 from schemas import SOSCreate, SOSResponse
 from websocket.manager import manager
 from websocket.events import NEW_SOS
-from fastapi import APIRouter, Depends, HTTPException
+
 router = APIRouter()
 
 
@@ -36,6 +36,16 @@ def get_all_sos(db: Session = Depends(get_db)):
 @router.get("/{sos_id}", response_model=SOSResponse)
 def get_sos(sos_id: int, db: Session = Depends(get_db)):
     return db.query(SOS).filter(SOS.id == sos_id).first()
+
+
+@router.delete("/{sos_id}")
+async def delete_sos(sos_id: int, db: Session = Depends(get_db)):
+    db_sos = db.query(SOS).filter(SOS.id == sos_id).first()
+    if not db_sos:
+        raise HTTPException(status_code=404, detail="SOS bulunamadı")
+    db.delete(db_sos)
+    db.commit()
+    return {"status": "silindi"}
 
 @router.put("/{sos_id}/resolve")
 async def resolve_sos(sos_id: int, db: Session = Depends(get_db)):
