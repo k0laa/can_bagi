@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MeshAid Network Security Config
+  Cleartext HTTP sadece belirli (güvenli olarak değerlendirilen) hedeflere izin verilir:
+    - ESP32 AP IP (192.168.4.1)        : Mesh ağı, internet yok, HTTPS imkansız
+    - Android emülatör host (10.0.2.2) : Geliştirme backend'i
+    - Yerel ağ private range'leri      : Backend takım arkadaşının LAN IP'si
+
+  Production'da public domain kullanılırsa HTTPS zorunlu olur.
+-->
+<network-security-config>
+    <!-- Varsayılan: cleartext yasak (public domain'lere HTTP gönderilemez) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- ESP32 ve yerel backend hedefleri: cleartext serbest -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- ESP32 mesh AP (standart AP IP, fallback) -->
+        <domain includeSubdomains="false">192.168.4.1</domain>
+
+        <!-- ESP32 mesh AP (mevcut firmware'in atadığı IP) -->
+        <domain includeSubdomains="false">10.94.25.1</domain>
+
+        <!-- Android emülatör → host machine -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+
+        <!-- iOS simulator / local dev -->
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+
+        <!--
+          TODO (demo): Backend takım arkadaşının LAN IP'sini buraya ekle.
+          Örnek: <domain includeSubdomains="false">192.168.1.45</domain>
+          Hackathon WiFi'ye bağlandığında `ipconfig` ile bulunup eklenmelidir.
+        -->
+    </domain-config>
+</network-security-config>

@@ -1,0 +1,56 @@
+name: meshaid_mobile
+description: MeshAid - Afet Acil Yardım Koordinasyon Uygulaması
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Navigasyon
+  go_router: ^14.0.0
+
+  # State Management
+  provider: ^6.1.2
+
+  # Konum
+  permission_handler: ^11.3.1
+  geolocator: ^13.0.1
+
+  # Bağlantı
+  connectivity_plus: ^6.0.3
+
+  # HTTP Client
+  dio: ^5.4.0
+
+  # Fontlar
+  google_fonts: ^6.2.1
+
+  # Local Storage
+  shared_preferences: ^2.3.2
+
+  # İkonlar
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Bebas Neue
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
