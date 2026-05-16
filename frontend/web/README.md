@@ -1,5 +1,7 @@
 # Can Bağı Web Dashboard
 
+![logo](../../assets/logo_192.png)
+
 React tabanlı web dashboard, koordinatörlerin sahadaki acil durumları ve görevleri izlemesini sağlar.
 
 ## Temel Özellikler

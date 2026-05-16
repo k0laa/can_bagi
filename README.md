@@ -1,4 +1,5 @@
 # Can Bağı
+![logo](assets/logo_192.png)
 
 Can Bağı, internet ve GSM bağlantısının kesildiği afet senaryolarında acil durum haberleşmesini sağlamak için tasarlanmış bir prototip sistemdir. Projede ESP32 tabanlı mesh ağı, Python/FastAPI backend, Flutter mobil uygulama ve React web dashboard birlikte çalışır..
 

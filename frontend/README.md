@@ -1,5 +1,7 @@
 # Can Bağı Frontend
 
+![logo](../assets/logo_192.png)
+
 Frontend, kullanıcıların ve koordinatörlerin sistemle etkileşime geçtiği iki ana uygulamayı içerir.
 
 ## İki Ana Uygulama

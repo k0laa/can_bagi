@@ -1,5 +1,7 @@
 # Can Bağı Backend
 
+![logo](../assets/logo_192.png)
+
 Backend, Can Bağı sisteminin merkezi iş mantığını barındırır. FastAPI tabanlıdır ve JSON API + WebSocket sunar.
 
 ## Amaç
