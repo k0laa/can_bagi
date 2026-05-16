@@ -5,7 +5,8 @@ from models import NeedRequest
 from schemas import NeedRequestCreate, NeedRequestResponse
 from websocket.manager import manager
 from websocket.events import NEW_REQUEST
-
+from fastapi import APIRouter, Depends, HTTPException
+from routers.auth import get_coordinator
 router = APIRouter()
 
 
@@ -48,3 +49,13 @@ def update_status(need_id: int, status: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_need)
     return db_need
+
+@router.delete("/{need_id}")
+async def delete_need(need_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
+    coordinator = Depends(get_coordinator)
+    db_need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
+    if not db_need:
+        raise HTTPException(status_code=404, detail="İhtiyaç bulunamadı")
+    db.delete(db_need)
+    db.commit()
+    return {"status": "silindi"}

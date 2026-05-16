@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from typing import Optional
+from datetime import datetime
 
 
 # SOS
@@ -14,7 +15,10 @@ class SOSResponse(BaseModel):
     lat: Optional[float]
     lon: Optional[float]
     status: str
-    created_at: str
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
 
     class Config:
         from_attributes = True
@@ -38,7 +42,10 @@ class NeedRequestResponse(BaseModel):
     people_count: int
     details: Optional[str]
     status: str
-    created_at: str
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
 
     class Config:
         from_attributes = True
@@ -63,7 +70,10 @@ class TaskResponse(BaseModel):
     lat: Optional[float]
     lon: Optional[float]
     assigned_to: Optional[str]
-    created_at: str
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
 
     class Config:
         from_attributes = True
@@ -73,17 +83,24 @@ class TaskResponse(BaseModel):
 class UserCreate(BaseModel):
     name: str
     surname: str
+    skills: Optional[str] = "GENERAL"
     phone: str
     blood_type: Optional[str] = None
     password: str
+    skills: Optional[str] = "GENERAL"
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 class UserResponse(BaseModel):
     id: int
     name: str
     surname: str
+    role: str
     phone: str
     blood_type: Optional[str]
-    is_coordinator: bool
+    skills: Optional[str] = "GENERAL"
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     class Config:
         from_attributes = True

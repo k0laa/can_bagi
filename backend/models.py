@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
 from sqlalchemy.sql import func
 from database import Base
-from sqlalchemy import Boolean
 from datetime import datetime, timezone, timedelta
 
 def turkey_time():
@@ -24,12 +23,12 @@ class NeedRequest(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     node_id = Column(String, nullable=True)
-    category = Column(String)  # MEDICAL, RESCUE, FOOD, SHELTER, CLOTHES, VULNERABLE
+    category = Column(String)
     lat = Column(Float, nullable=True)
     lon = Column(Float, nullable=True)
     people_count = Column(Integer, default=1)
     details = Column(String, nullable=True)
-    status = Column(String, default="pending")  # pending, assigned, resolved
+    status = Column(String, default="pending")
     created_at = Column(DateTime, default=turkey_time)
 
 
@@ -38,8 +37,8 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    type = Column(String)  # FOOD, TRANSPORT, DISTRIBUTION, CLEANING, ESCORT, GUIDANCE
-    status = Column(String, default="pending")  # pending, assigned, completed
+    type = Column(String)
+    status = Column(String, default="pending")
     lat = Column(Float, nullable=True)
     lon = Column(Float, nullable=True)
     assigned_to = Column(String, nullable=True)
@@ -55,8 +54,12 @@ class User(Base):
     phone = Column(String, unique=True)
     blood_type = Column(String, nullable=True)
     hashed_password = Column(String)
-    created_at = Column(DateTime, default=func.now())
-    is_coordinator = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=turkey_time)
+    role = Column(String, default="USER")  # USER, COORDINATOR, SUPER
+    skills = Column(String, nullable=True, default="GENERAL")
+    lat = Column(Float, nullable=True)
+    lon = Column(Float, nullable=True)
+
 
 class Node(Base):
     __tablename__ = "nodes"
@@ -65,4 +68,3 @@ class Node(Base):
     status = Column(String, default="active")
     free_heap = Column(Integer, nullable=True)
     last_seen = Column(DateTime, default=turkey_time)
-
