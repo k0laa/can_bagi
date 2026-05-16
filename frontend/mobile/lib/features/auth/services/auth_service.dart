@@ -47,15 +47,34 @@ class AuthService {
     required String name,
     required String surname,
     required String bloodType,
+    String? skills,
+    double? lat,
+    double? lon,
   }) async {
     try {
       final res = await _dio.put(
         '${AppConstants.apiBaseUrl}/user/profile',
-        data: {
+        queryParameters: {
           'name':       name,
           'surname':    surname,
           'blood_type': bloodType,
+          if (skills != null) 'skills': skills,
+          if (lat != null) 'lat': lat,
+          if (lon != null) 'lon': lon,
         },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return UserModel.fromJson(res.data['user'] as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Profil getir
+  Future<UserModel> getProfile({required String token}) async {
+    try {
+      final res = await _dio.get(
+        '${AppConstants.apiBaseUrl}/user/profile',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return UserModel.fromJson(res.data['user'] as Map<String, dynamic>);

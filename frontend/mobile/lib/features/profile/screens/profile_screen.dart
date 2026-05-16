@@ -121,6 +121,19 @@ class _LoggedInViewState extends State<_LoggedInView> {
     _surnameCtr = TextEditingController(text: u.surname);
     _phoneCtr   = TextEditingController(text: u.phone);
     _bloodType  = _bloodTypes.contains(u.bloodType) ? u.bloodType : 'A+';
+
+    // Sayfa açılınca otomatik GET /user/profile
+    widget.auth.fetchProfile().then((_) {
+      if (mounted && widget.auth.user != null) {
+        final fresh = widget.auth.user!;
+        _nameCtr.text = fresh.name;
+        _surnameCtr.text = fresh.surname;
+        _phoneCtr.text = fresh.phone;
+        setState(() {
+          _bloodType = _bloodTypes.contains(fresh.bloodType) ? fresh.bloodType : 'A+';
+        });
+      }
+    });
   }
 
   @override

@@ -8,6 +8,8 @@ import 'core/router/app_router.dart';
 import 'core/providers/connection_provider.dart';
 import 'core/providers/location_provider.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/websocket_provider.dart';
+import 'core/constants/app_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,11 +31,16 @@ class MeshAidApp extends StatelessWidget {
             create: (_) => ConnectionProvider()..startMonitoring()),
         ChangeNotifierProvider(create: (_) => LocationProvider(prefs)),
         ChangeNotifierProvider(create: (_) => AuthProvider(prefs)),
+        ChangeNotifierProxyProvider<AuthProvider, WebSocketProvider>(
+          create: (ctx) => WebSocketProvider(authProvider: ctx.read<AuthProvider>()),
+          update: (_, auth, ws) => ws ?? WebSocketProvider(authProvider: auth),
+        ),
       ],
       child: Builder(
         builder: (context) {
           final router = AppRouter.router;
           return MaterialApp.router(
+            scaffoldMessengerKey: AppConstants.scaffoldMessengerKey,
             title: 'MeshAid',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
