@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/connection_provider.dart';
 import '../../../core/providers/websocket_provider.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/app_toast.dart';
@@ -61,9 +62,16 @@ class _TasksScreenState extends State<TasksScreen> {
     });
 
     final auth = context.read<AuthProvider>();
+    final conn = context.read<ConnectionProvider>();
+
+    // ESP32 modunda WS bağlantısını aç
+    if (conn.type == ConnectionType.esp32) {
+      context.read<WebSocketProvider>().connectEsp32();
+    }
 
     try {
-      final tasks = await _taskService.getMyTasks(auth.token);
+      final tasks = await _taskService.getMyTasks(auth.token,
+          connectionType: conn.type);
 
       TaskModel? active;
       final openTasks = <TaskModel>[];
@@ -114,8 +122,10 @@ class _TasksScreenState extends State<TasksScreen> {
       return;
     }
 
+    final conn = context.read<ConnectionProvider>();
     try {
-      await _taskService.rejectTask(task.id, auth.token);
+      await _taskService.rejectTask(task.id, auth.token,
+          connectionType: conn.type);
       if (!mounted) return;
       AppToast.show(context, 'Görev reddedildi', type: AppToastType.success);
 
@@ -135,8 +145,10 @@ class _TasksScreenState extends State<TasksScreen> {
       return;
     }
 
+    final conn = context.read<ConnectionProvider>();
     try {
-      await _taskService.acceptTask(task.id, auth.token);
+      await _taskService.acceptTask(task.id, auth.token,
+          connectionType: conn.type);
       if (!mounted) return;
       AppToast.show(context, 'Görev kabul edildi', type: AppToastType.success);
 
@@ -153,8 +165,10 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Future<void> _completeTask(TaskModel task) async {
     final auth = context.read<AuthProvider>();
+    final conn = context.read<ConnectionProvider>();
     try {
-      await _taskService.completeTask(task.id, auth.token);
+      await _taskService.completeTask(task.id, auth.token,
+          connectionType: conn.type);
       if (!mounted) return;
       AppToast.show(context, 'Görev tamamlandı, teşekkürler!',
           type: AppToastType.success);

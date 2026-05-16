@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/providers/connection_provider.dart';
+import '../../../core/providers/websocket_provider.dart';
 import '../models/task_model.dart';
 import '../models/assembly_point_model.dart';
 
@@ -8,6 +11,13 @@ class TaskService {
     connectTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
     receiveTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
   ));
+
+  final Dio _esp32Dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: AppConstants.esp32TimeoutSec),
+    receiveTimeout: const Duration(seconds: AppConstants.esp32TimeoutSec),
+  ));
+
+  // ── Backend metotları ────────────────────────────────────────────────────
 
   Future<List<TaskModel>> getNearbyTasks(
       double? lat, double? lon, String? token) async {
@@ -38,49 +48,11 @@ class TaskService {
     }
   }
 
-  Future<void> acceptTask(int id, String? token) async {
-    try {
-      final options = Options();
-      if (token != null) {
-        options.headers = {'Authorization': 'Bearer $token'};
-      }
-      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/accept',
-          options: options);
-    } catch (_) {
-      // Ignore in mock setup
-      await Future.delayed(const Duration(milliseconds: 500));
+  Future<List<TaskModel>> getMyTasks(String? token,
+      {ConnectionType connectionType = ConnectionType.internet}) async {
+    if (connectionType == ConnectionType.esp32) {
+      return _getMyTasksViaEsp32(token);
     }
-  }
-
-  Future<void> rejectTask(int id, String? token) async {
-    try {
-      final options = Options();
-      if (token != null) {
-        options.headers = {'Authorization': 'Bearer $token'};
-      }
-      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/reject',
-          options: options);
-    } catch (_) {
-      // Ignore in mock setup
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-  }
-
-  Future<void> completeTask(int id, String? token) async {
-    try {
-      final options = Options();
-      if (token != null) {
-        options.headers = {'Authorization': 'Bearer $token'};
-      }
-      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/complete',
-          options: options);
-    } catch (_) {
-      // Ignore in mock setup
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-  }
-
-  Future<List<TaskModel>> getMyTasks(String? token) async {
     try {
       final options = Options();
       if (token != null) {
@@ -92,7 +64,6 @@ class TaskService {
         options: options,
       );
 
-      // Backend direkt list ya da {tasks: [...]} dönebilir
       final List data = res.data is List
           ? res.data as List
           : (res.data['tasks'] as List? ?? []);
@@ -106,6 +77,132 @@ class TaskService {
     }
   }
 
+  Future<void> acceptTask(int id, String? token,
+      {ConnectionType connectionType = ConnectionType.internet}) async {
+    if (connectionType == ConnectionType.esp32) {
+      return _acceptTaskViaEsp32(id, token);
+    }
+    try {
+      final options = Options();
+      if (token != null) {
+        options.headers = {'Authorization': 'Bearer $token'};
+      }
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/accept',
+          options: options);
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  Future<void> rejectTask(int id, String? token,
+      {ConnectionType connectionType = ConnectionType.internet}) async {
+    if (connectionType == ConnectionType.esp32) {
+      return _rejectTaskViaEsp32(id, token);
+    }
+    try {
+      final options = Options();
+      if (token != null) {
+        options.headers = {'Authorization': 'Bearer $token'};
+      }
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/reject',
+          options: options);
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  Future<void> completeTask(int id, String? token,
+      {ConnectionType connectionType = ConnectionType.internet}) async {
+    if (connectionType == ConnectionType.esp32) {
+      return _completeTaskViaEsp32(id, token);
+    }
+    try {
+      final options = Options();
+      if (token != null) {
+        options.headers = {'Authorization': 'Bearer $token'};
+      }
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/complete',
+          options: options);
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  // ── ESP32 metotları ──────────────────────────────────────────────────────
+
+  Future<List<TaskModel>> _getMyTasksViaEsp32(String? token) async {
+    final completer = Completer<List<TaskModel>>();
+    StreamSubscription? sub;
+
+    sub = WebSocketProvider.esp32Events.listen((data) {
+      final event = data['event'] as String?;
+      if (event == 'YOUR_TASKS' && !completer.isCompleted) {
+        try {
+          final raw = data['tasks'] as List? ?? data['data'] as List? ?? [];
+          completer.complete(raw
+              .map((e) => TaskModel.fromJson(e as Map<String, dynamic>))
+              .toList());
+        } catch (_) {
+          completer.complete([]);
+        }
+        sub?.cancel();
+      }
+    });
+
+    try {
+      await _esp32Dio.post(
+        '${AppConstants.esp32BaseUrl}/tasks/my/request',
+        data: {'token': token ?? ''},
+      );
+    } catch (_) {
+      sub.cancel();
+      return _getMockTasks();
+    }
+
+    return completer.future.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        sub?.cancel();
+        return _getMockTasks();
+      },
+    );
+  }
+
+  Future<void> _acceptTaskViaEsp32(int id, String? token) async {
+    try {
+      await _esp32Dio.post(
+        '${AppConstants.esp32BaseUrl}/tasks/accept',
+        data: {'task_id': id, 'token': token ?? ''},
+      );
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  Future<void> _rejectTaskViaEsp32(int id, String? token) async {
+    try {
+      await _esp32Dio.post(
+        '${AppConstants.esp32BaseUrl}/tasks/reject',
+        data: {'task_id': id, 'token': token ?? ''},
+      );
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  Future<void> _completeTaskViaEsp32(int id, String? token) async {
+    try {
+      await _esp32Dio.post(
+        '${AppConstants.esp32BaseUrl}/tasks/complete',
+        data: {'task_id': id, 'token': token ?? ''},
+      );
+    } catch (_) {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+  }
+
+  // ── Mock ─────────────────────────────────────────────────────────────────
+
   List<TaskModel> _getMockTasks() {
     return [
       const TaskModel(
@@ -115,7 +212,7 @@ class TaskService {
         assemblyPoint: AssemblyPointModel(
           id: 1,
           name: 'Atatürk İlkokulu',
-          lat: 39.6484 + 0.005, // Balıkesir center offset
+          lat: 39.6484 + 0.005,
           lon: 27.8826 + 0.005,
         ),
         peopleNeeded: 2,
