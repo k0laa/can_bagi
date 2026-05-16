@@ -5,6 +5,15 @@ from routers import sos, tasks, needs, auth, users,nodes
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="MeshAid Backend")
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(sos.router, prefix="/sos", tags=["SOS"])
 app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])

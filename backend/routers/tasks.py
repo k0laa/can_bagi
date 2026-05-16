@@ -7,7 +7,7 @@ from schemas import TaskCreate, TaskUpdate, TaskResponse
 from websocket.manager import manager
 from websocket.events import TASK_ASSIGNED, TASK_UPDATED
 from routers.auth import get_coordinator
-
+from routers.auth import get_coordinator, get_current_user
 router = APIRouter()
 
 
@@ -84,8 +84,11 @@ async def create_task(task: TaskCreate, db: Session = Depends(get_db), coordinat
 
 
 @router.get("/", response_model=list[TaskResponse])
-def get_all_tasks(db: Session = Depends(get_db)):
-    return db.query(Task).all()
+def get_all_tasks(status: str = None, db: Session = Depends(get_db)):
+    query = db.query(Task)
+    if status:
+        query = query.filter(Task.status == status)
+    return query.all()
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -115,10 +118,12 @@ async def update_task(task_id: int, update: TaskUpdate, db: Session = Depends(ge
 
 
 @router.post("/{task_id}/accept")
-async def accept_task(task_id: int, user_id: str, db: Session = Depends(get_db)):
+async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
     db_task.status = "assigned"
-    db_task.assigned_to = user_id
+    db_task.assigned_to = str(current_user["sub"])
     db.commit()
     db.refresh(db_task)
 
@@ -128,6 +133,7 @@ async def accept_task(task_id: int, user_id: str, db: Session = Depends(get_db))
         "status": db_task.status,
         "assigned_to": db_task.assigned_to
     })
+
     return db_task
 
 

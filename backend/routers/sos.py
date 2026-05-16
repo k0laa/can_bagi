@@ -8,6 +8,8 @@ from websocket.events import NEW_SOS
 import math
 from datetime import datetime, timezone, timedelta
 from routers.auth import get_coordinator
+from ai_service import analyze_sos
+
 router = APIRouter()
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -72,21 +74,36 @@ async def create_sos(sos: SOSCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_sos)
 
+    if sos.details:
+        try:
+            ai_result = analyze_sos(sos.details)
+            db_sos.ai_score = ai_result.get("score")
+            db_sos.ai_suggestion = ai_result.get("suggestion")
+            db.commit()
+            db.refresh(db_sos)
+        except Exception as e:
+            print("AI hatası:", e)
+
     await manager.broadcast_to_dashboard(NEW_SOS, {
         "id": db_sos.id,
         "node_id": db_sos.node_id,
         "lat": db_sos.lat,
         "lon": db_sos.lon,
         "status": db_sos.status,
-        "created_at": str(db_sos.created_at)
+        "created_at": str(db_sos.created_at),
+        "ai_score": db_sos.ai_score,
+        "ai_suggestion": db_sos.ai_suggestion
     })
 
     return db_sos
 
 
 @router.get("/", response_model=list[SOSResponse])
-def get_all_sos(db: Session = Depends(get_db)):
-    return db.query(SOS).all()
+def get_all_sos(status: str = None, db: Session = Depends(get_db)):
+    query = db.query(SOS)
+    if status:
+        query = query.filter(SOS.status == status)
+    return query.all()
 
 
 @router.get("/{sos_id}", response_model=SOSResponse)
