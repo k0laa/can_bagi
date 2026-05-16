@@ -21,12 +21,10 @@ class AppRouter {
   static GoRouter createRouter(AuthProvider authProvider) {
     return GoRouter(
       initialLocation: '/',
-      refreshListenable: authProvider,
       redirect: (context, state) {
         final loc = state.matchedLocation;
         final isAuthPage = loc == '/login' || loc == '/register';
         if (authProvider.isLoggedIn && isAuthPage) return '/';
-        if (!authProvider.isLoggedIn && loc == '/profile') return '/login';
         return null;
       },
       routes: [

@@ -193,8 +193,8 @@ class _LoggedInViewState extends State<_LoggedInView> {
       ),
     );
     if (confirm == true && mounted) {
+      context.go('/');
       await widget.auth.logout();
-      // refreshListenable + redirect router tarafından /login'e yönlendirir
     }
   }
 
