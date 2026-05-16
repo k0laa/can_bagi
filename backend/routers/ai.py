@@ -1,30 +1,22 @@
-import os
-from google import genai
+from groq import Groq
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
 from models import SOS, Task, NeedRequest, User, Node
 from routers.auth import get_coordinator
-from dotenv import load_dotenv
 
-load_dotenv()
+# ai_service.py ile aynı Groq client'ı kullanıyoruz
+client = Groq(api_key="REPLACED_SECRET")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-if GEMINI_API_KEY:
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    MODEL_ID = "gemini-2.0-flash"
-    SYSTEM_INSTRUCTION = (
-        "Sen bir afet yönetim asistanısın (Can Bağı sistemi). "
-        "Sana aktif SOS sinyalleri, görevler, ihtiyaç talepleri, kullanıcılar ve node durumları hakkında güncel veritabanı verileri veriliyor. "
-        "Koordinatörün sorularını bu verilere göre doğru ve net şekilde cevapla. "
-        "Türkçe cevap ver. Kısa, net ve yardımcı ol. "
-        "Eğer verilerde ilgili bilgi yoksa bunu açıkça belirt. "
-        "Sayısal veriler sorulduğunda doğrudan veritabanındaki rakamları kullan, tahmin yapma."
-    )
-else:
-    client = None
+SYSTEM_PROMPT = (
+    "Sen bir afet yönetim asistanısın (Can Bağı sistemi). "
+    "Sana aktif SOS sinyalleri, görevler, ihtiyaç talepleri, kullanıcılar ve node durumları hakkında güncel veritabanı verileri veriliyor. "
+    "Koordinatörün sorularını bu verilere göre doğru ve net şekilde cevapla. "
+    "Türkçe cevap ver. Kısa, net ve yardımcı ol. "
+    "Eğer verilerde ilgili bilgi yoksa bunu açıkça belirt. "
+    "Sayısal veriler sorulduğunda doğrudan veritabanındaki rakamları kullan, tahmin yapma."
+)
 
 router = APIRouter()
 
@@ -43,34 +35,23 @@ def chat(
     db: Session = Depends(get_db),
     coordinator=Depends(get_coordinator),
 ):
-    if not client:
-        raise HTTPException(
-            status_code=503,
-            detail="AI servisi yapılandırılmamış. GEMINI_API_KEY ayarlanmalı.",
-        )
-
     # ─── DB'den tüm güncel verileri çek ───
 
-    # Aktif SOS sinyalleri
     sos_list = db.query(SOS).filter(SOS.status == "active").all()
     sos_resolved = db.query(SOS).filter(SOS.status == "resolved").count()
 
-    # Görevler
     task_pending = db.query(Task).filter(Task.status == "pending").all()
     task_assigned = db.query(Task).filter(Task.status == "assigned").all()
     task_completed = db.query(Task).filter(Task.status == "completed").count()
 
-    # İhtiyaç talepleri
     need_pending = db.query(NeedRequest).filter(NeedRequest.status == "pending").all()
     need_assigned = db.query(NeedRequest).filter(NeedRequest.status == "assigned").all()
     need_resolved = db.query(NeedRequest).filter(NeedRequest.status == "resolved").count()
 
-    # Kullanıcılar
     total_users = db.query(User).count()
     coordinators = db.query(User).filter(User.role.in_(["COORDINATOR", "SUPER"])).count()
     volunteers = db.query(User).filter(User.role == "USER").all()
 
-    # Node'lar
     nodes = db.query(Node).all()
     active_nodes = [n for n in nodes if n.status == "active"]
 
@@ -183,16 +164,17 @@ def chat(
 """
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=f"Bağlam:\n{context}\n\nKoordinatörün sorusu: {req.message}",
-            config={
-                "system_instruction": SYSTEM_INSTRUCTION,
-                "temperature": 0.3,
-                "max_output_tokens": 2000,
-            },
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"Bağlam:\n{context}\n\nKoordinatörün sorusu: {req.message}"},
+            ],
+            temperature=0.3,
+            max_tokens=2000,
         )
-        return ChatResponse(response=response.text)
+        answer = response.choices[0].message.content.strip()
+        return ChatResponse(response=answer)
     except Exception as e:
         raise HTTPException(
             status_code=500,
