@@ -48,6 +48,18 @@ class Task(Base):
     lon = Column(Float, nullable=True)
     assigned_to = Column(String, nullable=True)
     created_at = Column(DateTime, default=turkey_time)
+    priority_score = Column(Float, nullable=True)
+    max_assignees = Column(Integer, default=1)
+    current_assignees = Column(Integer, default=0)
+
+class TaskAssignment(Base):
+    __tablename__ = "task_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, nullable=False)
+    status = Column(String, default="pending")  # pending, accepted, rejected
+    created_at = Column(DateTime, default=turkey_time)
 
 
 class User(Base):
@@ -64,6 +76,7 @@ class User(Base):
     skills = Column(String, nullable=True, default="GENERAL")
     lat = Column(Float, nullable=True)
     lon = Column(Float, nullable=True)
+    active_task_id = Column(Integer, nullable=True)
 
 
 class Node(Base):

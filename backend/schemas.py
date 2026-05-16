@@ -26,6 +26,27 @@ class SOSResponse(BaseModel):
     class Config:
         from_attributes = True
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+class TaskAssignmentResponse(BaseModel):
+    id: int
+    task_id: int
+    user_id: int
+    status: str
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
+
+    class Config:
+        from_attributes = True
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
 # NeedRequest
 class NeedRequestCreate(BaseModel):
@@ -79,6 +100,18 @@ class TaskResponse(BaseModel):
     lon: Optional[float]
     assigned_to: Optional[str]
     created_at: datetime
+<<<<<<< Updated upstream
+    priority_score: Optional[float] = None
+    max_assignees: int = 1
+    current_assignees: int = 0
+=======
+<<<<<<< Updated upstream
+=======
+    priority_score: Optional[float] = None
+    max_assignees: int = 1
+    current_assignees: int = 0
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
     @field_serializer("created_at")
     def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
@@ -109,6 +142,14 @@ class UserResponse(BaseModel):
     skills: Optional[str] = "GENERAL"
     lat: Optional[float] = None
     lon: Optional[float] = None
+<<<<<<< Updated upstream
+    active_task_id: Optional[int] = None
+=======
+<<<<<<< Updated upstream
+=======
+    active_task_id: Optional[int] = None
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
     class Config:
         from_attributes = True

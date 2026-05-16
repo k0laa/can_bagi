@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models import SOS, NeedRequest
 from schemas import SOSCreate, NeedRequestCreate
 from websocket.events import NEW_SOS, NEW_REQUEST
+from routers.tasks import auto_assign_task
 router = APIRouter()
 
 
@@ -87,6 +88,14 @@ async def receive_data(data: dict, db: Session = Depends(get_db)):
             "status": db_need.status,
             "created_at": str(db_need.created_at)
         })
+        await auto_assign_task("NEED", {
+            "id": db_need.id,
+            "lat": db_need.lat,
+            "lon": db_need.lon,
+            "details": db_need.details,
+            "category": db_need.category,
+            "priority_score": 5
+        }, db)
 
     else:
         print("Bilinmeyen tip:", data)
