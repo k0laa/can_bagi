@@ -1,7 +1,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from database import engine, Base
 from websocket.manager import manager
-from routers import sos, tasks, needs, auth, users,nodes
+from routers import sos, tasks, needs, auth, users, nodes, ai
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="MeshAid Backend")
@@ -21,6 +21,7 @@ app.include_router(needs.router, prefix="/needs", tags=["Needs"])
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/user", tags=["User"])
 app.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
+app.include_router(ai.router, prefix="/ai", tags=["AI"])
 
 @app.websocket("/ws/mobile")
 async def mobile_endpoint(websocket: WebSocket):
