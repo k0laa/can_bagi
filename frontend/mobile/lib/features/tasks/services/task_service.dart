@@ -9,7 +9,8 @@ class TaskService {
     receiveTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
   ));
 
-  Future<List<TaskModel>> getNearbyTasks(double? lat, double? lon, String? token) async {
+  Future<List<TaskModel>> getNearbyTasks(
+      double? lat, double? lon, String? token) async {
     try {
       final options = Options();
       if (token != null) {
@@ -27,7 +28,9 @@ class TaskService {
       );
 
       final List data = res.data['tasks'] ?? [];
-      return data.map((e) => TaskModel.fromJson(e as Map<String, dynamic>)).toList();
+      return data
+          .map((e) => TaskModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException {
       return _getMockTasks();
     } catch (_) {
@@ -41,7 +44,22 @@ class TaskService {
       if (token != null) {
         options.headers = {'Authorization': 'Bearer $token'};
       }
-      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/accept', options: options);
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/accept',
+          options: options);
+    } catch (_) {
+      // Ignore in mock setup
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  Future<void> rejectTask(int id, String? token) async {
+    try {
+      final options = Options();
+      if (token != null) {
+        options.headers = {'Authorization': 'Bearer $token'};
+      }
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/reject',
+          options: options);
     } catch (_) {
       // Ignore in mock setup
       await Future.delayed(const Duration(milliseconds: 500));
@@ -54,10 +72,37 @@ class TaskService {
       if (token != null) {
         options.headers = {'Authorization': 'Bearer $token'};
       }
-      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/complete', options: options);
+      await _dio.post('${AppConstants.apiBaseUrl}/tasks/$id/complete',
+          options: options);
     } catch (_) {
       // Ignore in mock setup
       await Future.delayed(const Duration(milliseconds: 500));
+    }
+  }
+
+  Future<List<TaskModel>> getMyTasks(String? token) async {
+    try {
+      final options = Options();
+      if (token != null) {
+        options.headers = {'Authorization': 'Bearer $token'};
+      }
+
+      final res = await _dio.get(
+        '${AppConstants.apiBaseUrl}/tasks/my',
+        options: options,
+      );
+
+      // Backend direkt list ya da {tasks: [...]} dönebilir
+      final List data = res.data is List
+          ? res.data as List
+          : (res.data['tasks'] as List? ?? []);
+      return data
+          .map((e) => TaskModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException {
+      return _getMockTasks();
+    } catch (_) {
+      return _getMockTasks();
     }
   }
 

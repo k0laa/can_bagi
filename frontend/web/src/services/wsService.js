@@ -1,4 +1,4 @@
-import { WS_URL } from '../utils/constants';
+import { WS_URL } from "../utils/constants";
 
 class WebSocketService {
   constructor() {
@@ -16,14 +16,14 @@ class WebSocketService {
     try {
       this.ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
     } catch (err) {
-      console.warn('[WS] connect error:', err);
+      console.warn("[WS] connect error:", err);
       this._scheduleReconnect(token);
       return;
     }
 
     this.ws.onopen = () => {
-      console.log('[WS] bağlandı');
-      this._emit('connected');
+      console.log("[WS] bağlandı");
+      this._emit("connected");
     };
 
     this.ws.onmessage = (event) => {
@@ -32,13 +32,13 @@ class WebSocketService {
         const { event: type, data } = payload;
         if (type) this._emit(type, data);
       } catch (err) {
-        console.warn('[WS] parse hatası:', err);
+        console.warn("[WS] parse hatası:", err);
       }
     };
 
     this.ws.onclose = () => {
-      console.log('[WS] koptu');
-      this._emit('disconnected');
+      console.log("[WS] koptu");
+      this._emit("disconnected");
       if (this.shouldReconnect) this._scheduleReconnect(token);
     };
 
@@ -58,11 +58,22 @@ class WebSocketService {
   on(event, callback) {
     if (!this.listeners[event]) this.listeners[event] = [];
     this.listeners[event].push(callback);
+    return () => this.off(event, callback); // Return unsubscribe function
+  }
+
+  once(event, callback) {
+    const wrapper = (data) => {
+      callback(data);
+      this.off(event, wrapper);
+    };
+    this.on(event, wrapper);
   }
 
   off(event, callback) {
     if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter((cb) => cb !== callback);
+    this.listeners[event] = this.listeners[event].filter(
+      (cb) => cb !== callback,
+    );
   }
 
   _emit(event, data) {
@@ -70,7 +81,7 @@ class WebSocketService {
       try {
         cb(data);
       } catch (err) {
-        console.error('[WS] listener hatası:', err);
+        console.error("[WS] listener hatası:", err);
       }
     });
   }

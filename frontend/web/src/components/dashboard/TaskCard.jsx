@@ -2,6 +2,12 @@ import useMapStore from '../../store/mapStore';
 import { taskTypeLabels } from '../../utils/mockData';
 import { formatTime } from '../../utils/mapIcons';
 
+const getPriorityStyle = (score) => {
+  if (score >= 8) return 'text-mesh-danger border-mesh-danger bg-mesh-danger/10';
+  if (score >= 5) return 'text-mesh-warning border-mesh-warning bg-mesh-warning/10';
+  return 'text-yellow-400 border-yellow-400 bg-yellow-400/10';
+};
+
 const statusConfig = {
   pending: { label: 'Bekliyor', border: 'border-mesh-warning', dot: 'bg-mesh-warning', text: 'text-mesh-warning' },
   assigned: { label: 'Atandı', border: 'border-mesh-accent', dot: 'bg-mesh-accent', text: 'text-mesh-accent' },
@@ -24,11 +30,23 @@ const TaskCard = ({ task, onChangeStatus, onDelete, onMatch }) => {
     <div className={`bg-mesh-card rounded-lg p-4 border-l-4 ${cfg.border}`}>
       <div className="flex justify-between items-start gap-3 mb-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-bebas text-xl tracking-wider text-mesh-text">
-            {task.title || taskTypeLabels[task.type] || task.type}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bebas text-xl tracking-wider text-mesh-text">
+              {task.title || taskTypeLabels[task.type] || task.type}
+            </h3>
+            {task.priority_score > 0 && (
+              <span className={`font-bebas text-xs px-1.5 py-0.5 rounded border ${getPriorityStyle(task.priority_score)}`}>
+                ⚡{task.priority_score}
+              </span>
+            )}
+          </div>
           <p className="font-nunito text-xs text-mesh-muted mt-0.5">
             {taskTypeLabels[task.type] || task.type}
+            {task.max_assignees > 1 && (
+              <span className="ml-2 text-mesh-disabled">
+                · {task.current_assignees ?? 0}/{task.max_assignees} kişi atandı
+              </span>
+            )}
             {task.lat != null && task.lon != null && (
               <button
                 type="button"

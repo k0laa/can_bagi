@@ -130,7 +130,14 @@ const SosList = ({ isOpen, onToggle }) => {
                   <span className="font-nunito text-xs text-mesh-muted">{formatTime(sos.ts)}</span>
                 </div>
                 <div className="flex justify-between items-center mt-0.5">
-                  <p className="font-nunito text-sm text-mesh-muted">Node: {sos.node_id}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-nunito text-sm text-mesh-muted">Node: {sos.node_id}</p>
+                    {sos.ai_score != null && (
+                      <span className={`font-bebas text-xs px-1.5 py-0.5 rounded border ${sos.ai_score >= 7 ? 'text-mesh-danger border-mesh-danger bg-mesh-danger/10' : 'text-mesh-muted border-mesh-disabled'}`}>
+                        AI:{sos.ai_score}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-1">
                     <button
                       onClick={(e) => handleResolve(e, sos.id)}
@@ -146,6 +153,11 @@ const SosList = ({ isOpen, onToggle }) => {
                     </button>
                   </div>
                 </div>
+                {sos.ai_suggestion && (
+                  <p className="font-nunito text-xs italic text-mesh-muted mt-1">
+                    💡 {sos.ai_suggestion}
+                  </p>
+                )}
               </div>
             ))
           )

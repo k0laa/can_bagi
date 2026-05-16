@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import useTaskStore from '../store/taskStore';
 import useAuthStore from '../store/authStore';
 import useToastStore from '../store/toastStore';
@@ -17,10 +17,16 @@ const FILTERS = [
 ];
 
 const TasksPage = () => {
-  const { tasks, updateTask, deleteTask } = useTaskStore();
+  const { tasks, updateTask, deleteTask, upsertTask } = useTaskStore();
   const addToast = useToastStore((s) => s.addToast);
   const token = useAuthStore((s) => s.token);
   const isDemo = token === 'dev-test-token';
+
+  useEffect(() => {
+    tasksService.prioritized().then((list) => {
+      list.forEach((t) => upsertTask(t));
+    }).catch(() => {});
+  }, []);
 
   const handleStatusChange = async (id, status) => {
     updateTask(id, { status });

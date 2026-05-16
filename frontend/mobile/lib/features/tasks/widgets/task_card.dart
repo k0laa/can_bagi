@@ -25,12 +25,22 @@ class TaskCard extends StatelessWidget {
       case 'CLEANING': return '🧹';
       case 'CARE': return '👴';
       case 'GUIDANCE': return '📢';
+      case 'RESCUE': return '🚨';
       default: return '🍳';
     }
   }
 
+  Color _getPriorityColor(int score) {
+    if (score >= 8) return AppColors.danger;
+    if (score >= 5) return AppColors.warning;
+    return const Color(0xFFEAB308); // sarı
+  }
+
   @override
   Widget build(BuildContext context) {
+    final priorityColor = _getPriorityColor(task.priorityScore);
+    final spotsLeft = task.maxAssignees - task.currentAssignees;
+
     return AppCard(
       onTap: onTap,
       child: Row(
@@ -44,14 +54,38 @@ class TaskCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.title,
-                  style: const TextStyle(
-                    fontFamily: 'Bebas Neue',
-                    fontSize: 18,
-                    color: Colors.white,
-                    letterSpacing: 1,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: const TextStyle(
+                          fontFamily: 'Bebas Neue',
+                          fontSize: 18,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                    if (task.priorityScore > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: priorityColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: priorityColor, width: 1),
+                        ),
+                        child: Text(
+                          '${task.priorityScore}',
+                          style: TextStyle(
+                            fontFamily: 'Bebas Neue',
+                            fontSize: 13,
+                            color: priorityColor,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 DirectionIndicator(
@@ -60,6 +94,18 @@ class TaskCard extends StatelessWidget {
                   targetLat: task.assemblyPoint.lat,
                   targetLon: task.assemblyPoint.lon,
                 ),
+                if (task.maxAssignees > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '$spotsLeft / ${task.maxAssignees} yer boş',
+                      style: const TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 11,
+                        color: AppColors.textDisabled,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

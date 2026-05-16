@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/location_provider.dart';
+import '../../../core/providers/websocket_provider.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/app_toast.dart';
 import '../../auth/widgets/soft_gate_sheet.dart';
@@ -30,10 +31,28 @@ class _TasksScreenState extends State<TasksScreen> {
   double? _userLat;
   double? _userLon;
 
+  late WebSocketProvider _wsProvider;
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _wsProvider = context.read<WebSocketProvider>();
+      _wsProvider.addListener(_onWsUpdate);
+    });
+  }
+
+  @override
+  void dispose() {
+    _wsProvider.removeListener(_onWsUpdate);
+    super.dispose();
+  }
+
+  void _onWsUpdate() {
+    if (!_isLoading && mounted) {
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -42,29 +61,18 @@ class _TasksScreenState extends State<TasksScreen> {
       _error = null;
     });
 
-    final locProvider = context.read<LocationProvider>();
     final auth = context.read<AuthProvider>();
 
     try {
-      if (!locProvider.hasPermission) {
-        await locProvider.requestPermission();
-      }
-      
-      if (locProvider.hasPermission) {
-        final pos = await locProvider.getCurrentPosition();
-        _userLat = pos?.latitude;
-        _userLon = pos?.longitude;
-      }
+      final tasks = await _taskService.getMyTasks(auth.token);
 
-      final tasks = await _taskService.getNearbyTasks(_userLat, _userLon, auth.token);
-      
       TaskModel? active;
       final openTasks = <TaskModel>[];
-      
+
       for (final t in tasks) {
-        if (t.status == 'accepted') {
+        if (t.status == 'assigned' || t.status == 'accepted') {
           active = t;
-        } else if (t.status == 'open') {
+        } else if (t.status == 'open' || t.status == 'pending') {
           openTasks.add(t);
         }
       }
@@ -95,8 +103,30 @@ class _TasksScreenState extends State<TasksScreen> {
       isTaskActive: _activeTask?.id == task.id,
       hasAnyActiveTask: _activeTask != null && _activeTask?.id != task.id,
       onAccept: () => _acceptTask(task),
+      onReject: () => _rejectTask(task),
       onComplete: () => _completeTask(task),
     );
+  }
+
+  Future<void> _rejectTask(TaskModel task) async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.isLoggedIn) {
+      SoftGateSheet.show(context);
+      return;
+    }
+
+    try {
+      await _taskService.rejectTask(task.id, auth.token);
+      if (!mounted) return;
+      AppToast.show(context, 'Görev reddedildi', type: AppToastType.success);
+
+      setState(() {
+        _tasks.removeWhere((t) => t.id == task.id);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      AppToast.show(context, 'Görev reddedilemedi', type: AppToastType.error);
+    }
   }
 
   Future<void> _acceptTask(TaskModel task) async {
@@ -110,9 +140,9 @@ class _TasksScreenState extends State<TasksScreen> {
       await _taskService.acceptTask(task.id, auth.token);
       if (!mounted) return;
       AppToast.show(context, 'Görev kabul edildi', type: AppToastType.success);
-      
+
       setState(() {
-        final accepted = task.copyWith(status: 'accepted');
+        final accepted = task.copyWith(status: 'assigned');
         _activeTask = accepted;
         _tasks.removeWhere((t) => t.id == task.id);
       });
@@ -127,8 +157,9 @@ class _TasksScreenState extends State<TasksScreen> {
     try {
       await _taskService.completeTask(task.id, auth.token);
       if (!mounted) return;
-      AppToast.show(context, 'Görev tamamlandı, teşekkürler!', type: AppToastType.success);
-      
+      AppToast.show(context, 'Görev tamamlandı, teşekkürler!',
+          type: AppToastType.success);
+
       setState(() {
         _activeTask = null;
       });
@@ -161,7 +192,8 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.accent));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.accent));
     }
 
     if (_error != null) {
@@ -169,12 +201,16 @@ class _TasksScreenState extends State<TasksScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_error!, style: AppTextStyles.body.copyWith(color: AppColors.danger)),
+            Text(_error!,
+                style: AppTextStyles.body.copyWith(color: AppColors.danger)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadData,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
-              child: const Text('Tekrar Dene', style: TextStyle(color: Colors.white, fontFamily: 'Bebas Neue')),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppColors.accent),
+              child: const Text('Tekrar Dene',
+                  style:
+                      TextStyle(color: Colors.white, fontFamily: 'Bebas Neue')),
             ),
           ],
         ),
@@ -200,24 +236,26 @@ class _TasksScreenState extends State<TasksScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           if (_activeTask != null)
             ActiveTaskBanner(
               task: _activeTask!,
               onTap: () => _onTaskTap(_activeTask!),
             ),
-
           if (_tasks.isEmpty && _activeTask == null)
             const Center(
               child: Padding(
                 padding: EdgeInsets.only(top: 48),
                 child: Text(
                   'Yakında görev bulunamadı',
-                  style: TextStyle(fontFamily: 'Nunito', fontSize: 16, color: AppColors.textDisabled),
+                  style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 16,
+                      color: AppColors.textDisabled),
                 ),
               ),
             )
-          else ..._buildGroupedTasks(),
+          else
+            ..._buildGroupedTasks(),
         ],
       ),
     );
