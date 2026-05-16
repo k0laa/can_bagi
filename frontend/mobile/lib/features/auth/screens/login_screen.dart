@@ -30,16 +30,25 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    print("allah belamı versin  ");
+
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final auth = context.read<AuthProvider>();
     try {
+          print(auth);
+      
       await auth.login(_phoneCtr.text.trim(), _passCtr.text);
       if (mounted) {
         // Konum al ve profil güncelle (Giriş sonrası otomatik)
         try {
           final loc = context.read<LocationProvider>();
+          print(loc);
           final pos = await loc.getCurrentPosition();
+          
+          print(pos);
           if (pos != null && auth.user != null) {
+            
+          print( auth.user);
             await auth.updateProfile(
               name: auth.user!.name,
               surname: auth.user!.surname,

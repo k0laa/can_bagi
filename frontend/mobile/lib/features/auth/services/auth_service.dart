@@ -11,31 +11,39 @@ class AuthService {
     connectTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
     receiveTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
   ));
-
-  /// Login — phone + password
   Future<({String token, UserModel user})> login({
     required String phone,
     required String password,
   }) async {
     try {
+      // 1) Token al — backend sadece {access_token, token_type} döner
       final res = await _dio.post(
         '${AppConstants.apiBaseUrl}/auth/login',
         data: {'phone': phone, 'password': password},
       );
-      return _parseAuthResponse(res.data as Map<String, dynamic>);
+      final data = res.data is Map<String, dynamic>
+          ? res.data as Map<String, dynamic>
+          : Map<String, dynamic>.from(res.data as Map);
+      final token = (data['access_token'] ?? data['token']) as String;
+
+      // 2) Kullanıcı bilgilerini ayrı çek
+      final user = await getProfile(token: token);
+      return (token: token, user: user);
     } on DioException catch (e) {
       throw _mapError(e);
     }
   }
 
-  /// Register — tüm kullanıcı bilgileri
+  /// Register — backend yalnızca kullanıcı objesini döner (token YOK).
+  /// Token almak için kayıt sonrası otomatik login yapıyoruz.
   Future<({String token, UserModel user})> register(RegisterRequest req) async {
     try {
-      final res = await _dio.post(
+      await _dio.post(
         '${AppConstants.apiBaseUrl}/auth/register',
         data: req.toJson(),
       );
-      return _parseAuthResponse(res.data as Map<String, dynamic>);
+      // Kayıt başarılı → token için login akışı
+      return await login(phone: req.phone, password: req.password);
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -64,38 +72,42 @@ class AuthService {
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-      return UserModel.fromJson(res.data['user'] as Map<String, dynamic>);
+      final data = res.data is Map<String, dynamic>
+          ? res.data as Map<String, dynamic>
+          : Map<String, dynamic>.from(res.data as Map);
+      return UserModel.fromJson(data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
   }
 
-  /// Profil getir
+  /// Profil getir — backend doğrudan user objesi döner
   Future<UserModel> getProfile({required String token}) async {
     try {
       final res = await _dio.get(
         '${AppConstants.apiBaseUrl}/user/profile',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-      return UserModel.fromJson(res.data['user'] as Map<String, dynamic>);
+      final data = res.data is Map<String, dynamic>
+          ? res.data as Map<String, dynamic>
+          : Map<String, dynamic>.from(res.data as Map);
+      return UserModel.fromJson(data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
   }
 
-  ({String token, UserModel user}) _parseAuthResponse(
-      Map<String, dynamic> data) {
-    final token = data['token'] as String;
-    final user  = UserModel.fromJson(data['user'] as Map<String, dynamic>);
-    return (token: token, user: user);
-  }
-
   Exception _mapError(DioException e) {
     if (e.response != null) {
-      final msg = (e.response!.data as Map<String, dynamic>?)?['message']
-          as String?;
-      return Exception(msg ?? 'Sunucu hatası');
+      final data = e.response!.data;
+      String? msg;
+      if (data is Map<String, dynamic>) {
+        msg = data['detail'] ?? data['message'];
+      } else if (data is String) {
+        msg = data;
+      }
+      return Exception(msg ?? 'Sunucu hatası: ${e.response?.statusCode}');
     }
-    return Exception('Bağlantı hatası');
+    return Exception('Bağlantı hatası: ${e.message}');
   }
 }

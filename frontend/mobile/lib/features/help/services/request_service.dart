@@ -42,11 +42,13 @@ class RequestService {
       );
       return RequestResponse.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
-        return RequestResponse.mock(payload['category'] as String);
-      }
-      rethrow;
+      // Gerçek hatayı yüzeye çıkar — sessiz mock fallback YOK.
+      final body = e.response?.data;
+      String detail = '';
+      if (body is Map && body['detail'] != null) detail = ' · ${body['detail']}';
+      throw NoConnectionException(
+        'İstek gönderilemedi (HTTP ${e.response?.statusCode ?? '-'})$detail',
+      );
     }
   }
 
@@ -61,8 +63,8 @@ class RequestService {
         ),
       );
       return RequestResponse.fromJson(res.data as Map<String, dynamic>);
-    } on DioException {
-      return RequestResponse.mock(payload['category'] as String);
+    } on DioException catch (e) {
+      throw NoConnectionException('ESP32 ile gönderilemedi: ${e.message}');
     }
   }
 }
