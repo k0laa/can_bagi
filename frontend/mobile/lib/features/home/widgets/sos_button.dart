@@ -66,6 +66,8 @@ class _SosButtonState extends State<SosButton>
     });
     _ctrl.forward(from: 0);
     HapticFeedback.mediumImpact();
+    // Zil sesini başlat
+    _sosService.playAlertSound(looping: true);
   }
 
   void _cancelPress() {
@@ -76,6 +78,8 @@ class _SosButtonState extends State<SosButton>
       _isPressing = false;
       _countdown  = _holdSeconds;
     });
+    // Zil sesini durdur
+    _sosService.stopAlertSound();
   }
 
   Future<void> _triggerSOS() async {
@@ -111,10 +115,14 @@ class _SosButtonState extends State<SosButton>
         lat: lat,
         lon: lon,
       );
+      // Başarılı SOS - sesi durdur
+      await _sosService.stopAlertSound();
       if (mounted) widget.onSuccess(response);
     } on NoConnectionException catch (e) {
+      await _sosService.stopAlertSound();
       if (mounted) widget.onError(e);
     } catch (e) {
+      await _sosService.stopAlertSound();
       if (mounted) widget.onError(Exception(e.toString()));
     } finally {
       if (mounted) {
@@ -175,6 +183,8 @@ class _SosButtonState extends State<SosButton>
       ..removeListener(_onTick)
       ..removeStatusListener(_onStatus)
       ..dispose();
+    // Kaynakları temizle
+    _sosService.dispose();
     super.dispose();
   }
 

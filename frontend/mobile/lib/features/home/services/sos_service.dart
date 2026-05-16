@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/connection_provider.dart';
 
@@ -46,6 +47,58 @@ class SosService {
     connectTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
     receiveTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
   ));
+
+  bool _isAlarmPlaying = false;
+
+  /// Telefonun varsayılan alarm/notification sesini çalar
+  /// SOS butonuna basıldığı sürece çalar
+  Future<void> playAlertSound({bool looping = true}) async {
+    try {
+      if (_isAlarmPlaying) return;
+      
+      _isAlarmPlaying = true;
+
+      // Flutter ringtone player - sistem alarm sesi
+      // loop: true ise sürekleme, false ise bir kez çal
+      await FlutterRingtonePlayer().play(
+        android: AndroidSounds.alarm,
+        ios: IosSounds.alarm,
+        looping: looping,
+        volume: 0.9,
+      );
+
+      if (kDebugMode) {
+        debugPrint('SOS zili çalmaya başladı');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Ses çalma hatası: $e');
+      }
+      _isAlarmPlaying = false;
+    }
+  }
+
+  /// Çalan sesi durdur
+  Future<void> stopAlertSound() async {
+    try {
+      if (_isAlarmPlaying) {
+        await FlutterRingtonePlayer().stop();
+        _isAlarmPlaying = false;
+        if (kDebugMode) {
+          debugPrint('SOS zili durduruldu');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Ses durdurma hatası: $e');
+      }
+    }
+  }
+
+  /// Kaynakları temizle (ringtone player otomatik temizlediği için gerekli değil)
+  void dispose() {
+    // flutter_ringtone_player otomatik olarak sesi durdurur
+  }
 
   Future<SosResponse> sendSOS({
     required ConnectionType connectionType,
