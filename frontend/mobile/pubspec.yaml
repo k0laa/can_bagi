@@ -36,8 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   web_socket_channel: ^3.0.3
 
-  # SOS Zili - Sistem Sesi Çalma
-  flutter_ringtone_player: ^4.0.0
+  # Deprem Düdük Sesi - Just Audio
+  just_audio: ^0.9.36
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +46,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/sounds/
 
   fonts:
     - family: Bebas Neue

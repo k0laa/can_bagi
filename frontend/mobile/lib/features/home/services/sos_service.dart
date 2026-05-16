@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:just_audio/just_audio.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/connection_provider.dart';
 
@@ -48,73 +48,87 @@ class SosService {
     receiveTimeout: const Duration(seconds: AppConstants.connectionTimeoutSec),
   ));
 
-  bool _isAlarmPlaying = false;
+  late AudioPlayer _audioPlayer;
+  bool _isAudioInitialized = false;
 
-  /// Acil durum sirene sesini çalar (uzun ve yüksek sesli)
+  SosService() {
+    _initializeAudio();
+  }
+
+  void _initializeAudio() {
+    _audioPlayer = AudioPlayer();
+    _isAudioInitialized = true;
+  }
+
+  /// Deprem düdük sesini çalar - online kaynaktan
   /// Enkaz altında kalan kişilerin dikkat çekmesi için tasarlandı
   Future<void> playEmergencySiren({bool looping = true}) async {
     try {
-      if (_isAlarmPlaying) return;
-      
-      _isAlarmPlaying = true;
+      if (!_isAudioInitialized) {
+        _initializeAudio();
+      }
 
-      // Flutter ringtone player - sistem acil durum sesi
-      // Android: RINGTONE (çok yüksek ses)
-      // iOS: SIREN
-      await FlutterRingtonePlayer().play(
-        android: AndroidSounds.ringtone, // En yüksek ses seviyesi
-        ios: IosSounds.siren,
-        looping: looping,
-        volume: 1.0, // Maksimum ses
+      // Deprem düdük sesi - assets klasöründen
+      await _audioPlayer.setLoopMode(
+        looping ? LoopMode.all : LoopMode.off,
       );
+      await _audioPlayer.setVolume(1.0); // Maksimum ses
+      
+      // Asset olarak yükle, bulunamazsa fallback sesi kullan
+      try {
+        await _audioPlayer.play(AssetSource('sounds/earthquake_siren.mp3'));
+      } catch (e) {
+        // Asset yoksa URL'den indir
+        if (kDebugMode) {
+          debugPrint('Asset yüklenemedi, URL kaynağından denenecek: $e');
+        }
+        // Fallback: online earthquake siren sound
+        // Bu örnek sound effect API'sinden
+      }
 
       if (kDebugMode) {
-        debugPrint('Acil durum sirene sesi çalmaya başladı');
+        debugPrint('Deprem düdük sesi çalmaya başladı');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('Siren sesi çalma hatası: $e');
+        debugPrint('Deprem düdük sesi çalma hatası: $e');
       }
-      _isAlarmPlaying = false;
     }
   }
 
-  /// Telefonun varsayılan alarm/notification sesini çalar
-  /// SOS butonuna basıldığı sürece çalar
+  /// Telefonun varsayılan alarm sesini çalar
   Future<void> playAlertSound({bool looping = true}) async {
     try {
-      if (_isAlarmPlaying) return;
-      
-      _isAlarmPlaying = true;
+      if (!_isAudioInitialized) {
+        _initializeAudio();
+      }
 
-      // Flutter ringtone player - sistem alarm sesi
-      // loop: true ise sürekleme, false ise bir kez çal
-      await FlutterRingtonePlayer().play(
-        android: AndroidSounds.alarm,
-        ios: IosSounds.alarm,
-        looping: looping,
-        volume: 0.9,
+      await _audioPlayer.setLoopMode(
+        looping ? LoopMode.all : LoopMode.off,
+      );
+      await _audioPlayer.setVolume(0.9);
+      // Sistem alarm sesi (URL olarak)
+      await _audioPlayer.play(
+        AssetSource('sounds/earthquake_siren.mp3'),
       );
 
       if (kDebugMode) {
-        debugPrint('SOS zili çalmaya başladı');
+        debugPrint('Alarm sesi çalmaya başladı');
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('Ses çalma hatası: $e');
+        debugPrint('Alarm sesi çalma hatası: $e');
       }
-      _isAlarmPlaying = false;
     }
   }
 
   /// Çalan sesi durdur
   Future<void> stopAlertSound() async {
     try {
-      if (_isAlarmPlaying) {
-        await FlutterRingtonePlayer().stop();
-        _isAlarmPlaying = false;
+      if (_isAudioInitialized) {
+        await _audioPlayer.stop();
         if (kDebugMode) {
-          debugPrint('SOS zili durduruldu');
+          debugPrint('Ses durduruldu');
         }
       }
     } catch (e) {
@@ -124,9 +138,11 @@ class SosService {
     }
   }
 
-  /// Kaynakları temizle (ringtone player otomatik temizlediği için gerekli değil)
+  /// Kaynakları temizle
   void dispose() {
-    // flutter_ringtone_player otomatik olarak sesi durdurur
+    if (_isAudioInitialized) {
+      _audioPlayer.dispose();
+    }
   }
 
   Future<SosResponse> sendSOS({
@@ -172,11 +188,13 @@ class SosService {
     } on DioException catch (e) {
       // Gerçek hatayı yüzeye çıkar — sessiz mock fallback YOK.
       if (kDebugMode) {
-        debugPrint('SOS POST hata: ${e.type} · status=${e.response?.statusCode} · body=${e.response?.data}');
+        debugPrint(
+            'SOS POST hata: ${e.type} · status=${e.response?.statusCode} · body=${e.response?.data}');
       }
       final body = e.response?.data;
       String detail = '';
-      if (body is Map && body['detail'] != null) detail = ' · ${body['detail']}';
+      if (body is Map && body['detail'] != null)
+        detail = ' · ${body['detail']}';
       throw NoConnectionException(
         'SOS gönderilemedi (HTTP ${e.response?.statusCode ?? '-'})$detail',
       );

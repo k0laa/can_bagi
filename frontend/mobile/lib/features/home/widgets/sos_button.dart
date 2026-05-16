@@ -9,8 +9,8 @@ import '../services/sos_service.dart';
 import 'countdown_ring.dart';
 
 class SosButton extends StatefulWidget {
-  final void Function(SosResponse)  onSuccess;
-  final void Function(Exception)    onError;
+  final void Function(SosResponse) onSuccess;
+  final void Function(Exception) onError;
 
   const SosButton({
     super.key,
@@ -24,13 +24,13 @@ class SosButton extends StatefulWidget {
 
 class _SosButtonState extends State<SosButton>
     with SingleTickerProviderStateMixin {
-  static const double _buttonSize    = 200;
-  static const int    _holdSeconds   = 3;
+  static const double _buttonSize = 200;
+  static const int _holdSeconds = 3;
 
   late AnimationController _ctrl;
-  bool _isPressing  = false;
-  bool _isSending   = false;
-  int  _countdown   = _holdSeconds;
+  bool _isPressing = false;
+  bool _isSending = false;
+  int _countdown = _holdSeconds;
 
   final SosService _sosService = SosService();
 
@@ -38,10 +38,11 @@ class _SosButtonState extends State<SosButton>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-      vsync:    this,
+      vsync: this,
       duration: const Duration(seconds: _holdSeconds),
-    )..addListener(_onTick)
-     ..addStatusListener(_onStatus);
+    )
+      ..addListener(_onTick)
+      ..addStatusListener(_onStatus);
   }
 
   void _onTick() {
@@ -62,7 +63,7 @@ class _SosButtonState extends State<SosButton>
     if (_isSending) return;
     setState(() {
       _isPressing = true;
-      _countdown  = _holdSeconds;
+      _countdown = _holdSeconds;
     });
     _ctrl.forward(from: 0);
     HapticFeedback.mediumImpact();
@@ -74,7 +75,7 @@ class _SosButtonState extends State<SosButton>
     _ctrl.reset();
     setState(() {
       _isPressing = false;
-      _countdown  = _holdSeconds;
+      _countdown = _holdSeconds;
     });
     // Zil sesini durdur
     _sosService.stopAlertSound();
@@ -86,7 +87,7 @@ class _SosButtonState extends State<SosButton>
     _ctrl.stop();
 
     final connProvider = context.read<ConnectionProvider>();
-    final locProvider  = context.read<LocationProvider>();
+    final locProvider = context.read<LocationProvider>();
 
     double? lat;
     double? lon;
@@ -121,9 +122,9 @@ class _SosButtonState extends State<SosButton>
     } finally {
       if (mounted) {
         setState(() {
-          _isSending  = false;
+          _isSending = false;
           _isPressing = false;
-          _countdown  = _holdSeconds;
+          _countdown = _holdSeconds;
         });
         _ctrl.reset();
       }
@@ -187,7 +188,7 @@ class _SosButtonState extends State<SosButton>
     final locProvider = context.watch<LocationProvider>();
 
     return SizedBox(
-      width:  _buttonSize * 1.8,
+      width: _buttonSize * 1.8,
       height: _buttonSize * 1.8,
       child: Stack(
         alignment: Alignment.center,
@@ -195,29 +196,29 @@ class _SosButtonState extends State<SosButton>
           // Halka animasyonu
           if (_isPressing)
             CountdownRing(
-              progress:   _ctrl,
-              countdown:  _countdown,
+              progress: _ctrl,
+              countdown: _countdown,
               buttonSize: _buttonSize,
             ),
 
           // Ana SOS butonu
           GestureDetector(
             onLongPressStart: (_) => _startPress(),
-            onLongPressEnd:   (_) => _cancelPress(),
-            onLongPressCancel:    _cancelPress,
+            onLongPressEnd: (_) => _cancelPress(),
+            onLongPressCancel: _cancelPress,
             child: AnimatedScale(
-              scale:    _isPressing ? 0.95 : 1.0,
+              scale: _isPressing ? 0.95 : 1.0,
               duration: const Duration(milliseconds: 100),
               child: Container(
-                width:  _buttonSize,
+                width: _buttonSize,
                 height: _buttonSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _isSending ? AppColors.textDisabled : AppColors.danger,
                   boxShadow: [
                     BoxShadow(
-                      color:       AppColors.danger.withValues(alpha: 0.45),
-                      blurRadius:  _isPressing ? 40 : 25,
+                      color: AppColors.danger.withValues(alpha: 0.45),
+                      blurRadius: _isPressing ? 40 : 25,
                       spreadRadius: _isPressing ? 8 : 3,
                     ),
                   ],
@@ -238,7 +239,7 @@ class _SosButtonState extends State<SosButton>
                             textAlign: TextAlign.center,
                             style: AppTextStyles.hero.copyWith(
                               fontSize: 44,
-                              height:   1.0,
+                              height: 1.0,
                             ),
                           ),
                         ],

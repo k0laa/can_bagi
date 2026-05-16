@@ -23,20 +23,20 @@ class _BellButtonState extends State<BellButton> {
 
   Future<void> _onBellPressStart() async {
     if (_isSirenPlaying) return;
-    
+
     setState(() => _isSirenPlaying = true);
     HapticFeedback.mediumImpact();
-    
+
     // Acil durum sirene sesini çal
     await _sosService.playEmergencySiren(looping: true);
   }
 
   Future<void> _onBellPressEnd() async {
     if (!_isSirenPlaying) return;
-    
+
     // Sesi durdur
     await _sosService.stopAlertSound();
-    
+
     setState(() => _isSirenPlaying = false);
   }
 

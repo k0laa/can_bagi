@@ -8,7 +8,6 @@ import '../../../shared/widgets/location_permission.dart';
 import '../widgets/sos_button.dart';
 import '../widgets/bell_button.dart';
 
-
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
