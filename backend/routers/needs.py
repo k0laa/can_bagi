@@ -7,6 +7,8 @@ from websocket.manager import manager
 from websocket.events import NEW_REQUEST
 from fastapi import APIRouter, Depends, HTTPException
 from routers.auth import get_coordinator
+from schemas import NeedRequestCreate, NeedRequestResponse, NeedStatusUpdate
+
 router = APIRouter()
 
 
@@ -33,8 +35,11 @@ async def create_need(need: NeedRequestCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[NeedRequestResponse])
-def get_all_needs(db: Session = Depends(get_db)):
-    return db.query(NeedRequest).all()
+def get_all_needs(status: str = None, db: Session = Depends(get_db)):
+    query = db.query(NeedRequest)
+    if status:
+        query = query.filter(NeedRequest.status == status)
+    return query.all()
 
 
 @router.get("/{need_id}", response_model=NeedRequestResponse)
@@ -43,9 +48,11 @@ def get_need(need_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{need_id}/status")
-def update_status(need_id: int, status: str, db: Session = Depends(get_db)):
+def update_status(need_id: int, update: NeedStatusUpdate, db: Session = Depends(get_db)):
     db_need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
-    db_need.status = status
+    if not db_need:
+        raise HTTPException(status_code=404, detail="İhtiyaç bulunamadı")
+    db_need.status = update.status
     db.commit()
     db.refresh(db_need)
     return db_need

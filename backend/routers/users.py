@@ -5,6 +5,8 @@ from models import User
 from schemas import UserResponse
 from routers.auth import get_current_user
 from routers.auth import get_current_user, get_coordinator
+from schemas import UserResponse, UserUpdate
+from routers.auth import get_current_user, get_coordinator, hash_password
 router = APIRouter()
 
 
@@ -22,24 +24,26 @@ def get_profile(db: Session = Depends(get_db), current_user=Depends(get_current_
 
     if name: user.name = name
 
+
 @router.put("/profile", response_model=UserResponse)
-def update_profile(
-        name: str = None,
-        surname: str = None,
-        blood_type: str = None,
-        lat: float = None,
-        lon: float = None,
-        db: Session = Depends(get_db),
-        current_user=Depends(get_current_user),
-):
+def update_profile(update: UserUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     user = db.query(User).filter(User.id == int(current_user["sub"])).first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
-    if name: user.name = name
-    if surname: user.surname = surname
-    if blood_type: user.blood_type = blood_type
-    if lat: user.lat = lat
-    if lon: user.lon = lon
+
+    if update.name: user.name = update.name
+    if update.surname: user.surname = update.surname
+    if update.blood_type: user.blood_type = update.blood_type
+    if update.skills: user.skills = update.skills
+    if update.lat: user.lat = update.lat
+    if update.lon: user.lon = update.lon
+    if update.password: user.hashed_password = hash_password(update.password)
+    if update.phone:
+        existing = db.query(User).filter(User.phone == update.phone).first()
+        if existing and existing.id != int(current_user["sub"]):
+            raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı")
+        user.phone = update.phone
+
     db.commit()
     db.refresh(user)
     return user

@@ -8,6 +8,7 @@ class SOSCreate(BaseModel):
     node_id: Optional[str] = None
     lat: Optional[float] = None
     lon: Optional[float] = None
+    details: Optional[str] = None
 
 class SOSResponse(BaseModel):
     id: int
@@ -16,6 +17,8 @@ class SOSResponse(BaseModel):
     lon: Optional[float]
     status: str
     created_at: datetime
+    ai_score: Optional[float] = None
+    ai_suggestion: Optional[str] = None
 
     @field_serializer("created_at")
     def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
@@ -43,6 +46,8 @@ class NeedRequestResponse(BaseModel):
     details: Optional[str]
     status: str
     created_at: datetime
+    ai_score: Optional[float] = None
+    ai_suggestion: Optional[str] = None
 
     @field_serializer("created_at")
     def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
@@ -50,6 +55,9 @@ class NeedRequestResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class NeedStatusUpdate(BaseModel):
+    status: str  # pending, assigned, resolved
 
 # Task
 class TaskCreate(BaseModel):
@@ -105,6 +113,15 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    blood_type: Optional[str] = None
+    skills: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    password: Optional[str] = None
+    phone: Optional[str] = None
 
 # Auth
 class Token(BaseModel):

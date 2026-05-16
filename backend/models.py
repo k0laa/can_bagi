@@ -16,6 +16,9 @@ class SOS(Base):
     lon = Column(Float, nullable=True)
     status = Column(String, default="active")
     created_at = Column(DateTime, default=turkey_time)
+    ai_score = Column(Float, nullable=True)
+    ai_suggestion = Column(String, nullable=True)
+    details = Column(String, nullable=True)
 
 
 class NeedRequest(Base):
@@ -30,6 +33,8 @@ class NeedRequest(Base):
     details = Column(String, nullable=True)
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=turkey_time)
+    ai_score = Column(Float, nullable=True)
+    ai_suggestion = Column(String, nullable=True)
 
 
 class Task(Base):
