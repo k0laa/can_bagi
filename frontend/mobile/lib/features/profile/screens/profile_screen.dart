@@ -24,9 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: const AppTopBar(title: 'PROFİLİM'),
-          body: auth.isLoggedIn
-              ? _LoggedInView(auth: auth)
-              : const _GuestView(),
+          body:
+              auth.isLoggedIn ? _LoggedInView(auth: auth) : const _GuestView(),
         );
       },
     );
@@ -54,18 +53,20 @@ class _GuestView extends StatelessWidget {
             style: AppTextStyles.caption,
           ),
           const SizedBox(height: 16),
-          const _AdvItem(Icons.bloodtype_outlined,  'Kan grubunuz kurtarma ekibine iletilir'),
-          const _AdvItem(Icons.medication_outlined, 'Kronik ilaçlarınız bildirilir'),
-          const _AdvItem(Icons.task_alt_outlined,   'Görev alabilirsiniz'),
+          const _AdvItem(Icons.bloodtype_outlined,
+              'Kan grubunuz kurtarma ekibine iletilir'),
+          const _AdvItem(
+              Icons.medication_outlined, 'Kronik ilaçlarınız bildirilir'),
+          const _AdvItem(Icons.task_alt_outlined, 'Görev alabilirsiniz'),
           const SizedBox(height: 32),
           AppButton(
-            label:     'KAYIT OL',
+            label: 'KAYIT OL',
             onPressed: () => context.push('/register'),
           ),
           const SizedBox(height: 12),
           AppButton(
-            label:    'GİRİŞ YAP',
-            variant:  AppButtonVariant.outline,
+            label: 'GİRİŞ YAP',
+            variant: AppButtonVariant.outline,
             onPressed: () => context.push('/login'),
           ),
         ],
@@ -76,7 +77,7 @@ class _GuestView extends StatelessWidget {
 
 class _AdvItem extends StatelessWidget {
   final IconData icon;
-  final String   text;
+  final String text;
   const _AdvItem(this.icon, this.text);
 
   @override
@@ -110,17 +111,24 @@ class _LoggedInViewState extends State<_LoggedInView> {
   String _bloodType = 'A+';
 
   static const List<String> _bloodTypes = [
-    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', '0+', '0-'
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    '0+',
+    '0-'
   ];
 
   @override
   void initState() {
     super.initState();
     final u = widget.auth.user!;
-    _nameCtr    = TextEditingController(text: u.name);
+    _nameCtr = TextEditingController(text: u.name);
     _surnameCtr = TextEditingController(text: u.surname);
-    _phoneCtr   = TextEditingController(text: u.phone);
-    _bloodType  = _bloodTypes.contains(u.bloodType) ? u.bloodType : 'A+';
+    _phoneCtr = TextEditingController(text: u.phone);
+    _bloodType = _bloodTypes.contains(u.bloodType) ? u.bloodType : 'A+';
 
     // Sayfa açılınca otomatik GET /user/profile
     widget.auth.fetchProfile().then((_) {
@@ -130,7 +138,8 @@ class _LoggedInViewState extends State<_LoggedInView> {
         _surnameCtr.text = fresh.surname;
         _phoneCtr.text = fresh.phone;
         setState(() {
-          _bloodType = _bloodTypes.contains(fresh.bloodType) ? fresh.bloodType : 'A+';
+          _bloodType =
+              _bloodTypes.contains(fresh.bloodType) ? fresh.bloodType : 'A+';
         });
       }
     });
@@ -147,8 +156,8 @@ class _LoggedInViewState extends State<_LoggedInView> {
   Future<void> _save() async {
     try {
       await widget.auth.updateProfile(
-        name:      _nameCtr.text.trim(),
-        surname:   _surnameCtr.text.trim(),
+        name: _nameCtr.text.trim(),
+        surname: _surnameCtr.text.trim(),
         bloodType: _bloodType,
       );
       if (mounted) {
@@ -169,29 +178,28 @@ class _LoggedInViewState extends State<_LoggedInView> {
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title:   Text('Çıkış Yap', style: AppTextStyles.cardTitle),
+        title: Text('Çıkış Yap', style: AppTextStyles.cardTitle),
         content: Text(
           'Çıkış yapmak istediğinize emin misiniz?',
           style: AppTextStyles.body,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogCtx, false),
             child: Text('İptal',
-                style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary)),
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context, false);
+              Navigator.pop(dialogCtx, false);
               context.go('/');
               await widget.auth.logout();
             },
             child: Text('Çıkış Yap',
-                style: AppTextStyles.caption.copyWith(
-                    color: AppColors.danger)),
+                style: AppTextStyles.caption.copyWith(color: AppColors.danger)),
           ),
         ],
       ),
@@ -225,21 +233,21 @@ class _LoggedInViewState extends State<_LoggedInView> {
           const SizedBox(height: 24),
 
           AppTextField(
-            label:      'İsim',
+            label: 'İsim',
             controller: _nameCtr,
           ),
           const SizedBox(height: 12),
 
           AppTextField(
-            label:      'Soyisim',
+            label: 'Soyisim',
             controller: _surnameCtr,
           ),
           const SizedBox(height: 12),
 
           AppTextField(
-            label:      'Telefon',
+            label: 'Telefon',
             controller: _phoneCtr,
-            readOnly:   true,
+            readOnly: true,
           ),
           const SizedBox(height: 12),
 
@@ -259,7 +267,8 @@ class _LoggedInViewState extends State<_LoggedInView> {
               ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(12),
@@ -267,8 +276,8 @@ class _LoggedInViewState extends State<_LoggedInView> {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value:         _bloodType,
-                    isExpanded:    true,
+                    value: _bloodType,
+                    isExpanded: true,
                     dropdownColor: AppColors.card,
                     icon: const Icon(Icons.expand_more,
                         color: AppColors.textSecondary),
@@ -278,8 +287,7 @@ class _LoggedInViewState extends State<_LoggedInView> {
                       color: AppColors.textPrimary,
                     ),
                     items: _bloodTypes
-                        .map((t) =>
-                            DropdownMenuItem(value: t, child: Text(t)))
+                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                         .toList(),
                     onChanged: (v) {
                       if (v != null) setState(() => _bloodType = v);
@@ -293,7 +301,7 @@ class _LoggedInViewState extends State<_LoggedInView> {
 
           Consumer<AuthProvider>(
             builder: (_, auth, __) => AppButton(
-              label:     'KAYDET',
+              label: 'KAYDET',
               isLoading: auth.isLoading,
               onPressed: _save,
             ),
