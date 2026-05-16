@@ -95,6 +95,26 @@ void setupPhoneAPI() {
     }
   );
 
+  // Değişiklik: node_id body'den okunur, yoksa NODE_ID sabiti (fallback)
+  server.on("/needs", HTTP_POST, [](AsyncWebServerRequest *req){}, nullptr,
+    [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t, size_t) {
+      StaticJsonDocument<256> body;
+      deserializeJson(body, data, len);
+
+      StaticJsonDocument<512> msg;
+      msg["type"]    = "NEEDS";
+      msg["node_id"] = body["node_id"] | NODE_ID;
+      msg["ts"]      = millis();
+      msg["lat"]     = body["lat"] | 0.0;
+      msg["lon"]     = body["lon"] | 0.0;
+      msg["people_count"] = body["people_count"] | 1;
+      msg["details"] = body["details"] | "---";
+      broadcast(msg);
+
+      req->send(200, "application/json", "{\"status\":\"sent\"}");
+    }
+  );
+
   // Not: rota /request olarak kalıyor (Flutter bu adrese POST atar),
   // mesh mesaj tipi "REQUEST" → backend /needs/ endpoint'ine yönlenir (gateway endpoint() fn)
   server.on("/request", HTTP_POST, [](AsyncWebServerRequest *req){}, nullptr,
