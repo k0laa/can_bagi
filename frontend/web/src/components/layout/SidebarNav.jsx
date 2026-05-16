@@ -5,6 +5,7 @@ const navItems = [
   { to: '/tasks', icon: '✅', label: 'Görevler', shortcut: '2' },
   { to: '/nodes', icon: '📡', label: 'Node Durumu', shortcut: '3' },
   { to: '/assembly', icon: '📍', label: 'Toplanma Noktaları', shortcut: '4' },
+  { to: '/users', icon: '👥', label: 'Kullanıcılar', shortcut: '5' },
 ];
 
 const SidebarNav = () => {
@@ -43,7 +44,7 @@ const SidebarNav = () => {
 
       <div className="p-3 border-t border-mesh-disabled">
         <p className="font-nunito text-[10px] text-mesh-disabled text-center">
-          🎹 1-4 tuşlarıyla geçiş
+          🎹 1-5 tuşlarıyla geçiş
         </p>
       </div>
     </div>

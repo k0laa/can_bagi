@@ -39,7 +39,7 @@ const PageLayout = () => {
     }
 
     // Backend'den paralel olarak çek; her biri ayrı catch ile fail-safe
-    sosService.list().then(setSosList).catch(() => setSosList([]));
+    sosService.prioritized().then(setSosList).catch(() => setSosList([]));
     needsService.list().then(setRequestList).catch(() => setRequestList([]));
     nodesService.list().then(setNodeList).catch(() => setNodeList([]));
     tasksService.list().then(setTasks).catch(() => setTasks([]));

@@ -1,5 +1,7 @@
 import { formatTime } from '../../utils/mapIcons';
-
+import useMapStore from '../../store/mapStore';
+import nodesService from '../../services/nodesService';
+import { showToast } from '../../store/toastStore';
 const timeAgo = (iso) => {
   if (!iso) return '';
   const ms = Date.now() - new Date(iso).getTime();
@@ -11,6 +13,18 @@ const timeAgo = (iso) => {
 const NodeCard = ({ data }) => {
   const isActive = data.status === 'active';
   const heapKB = data.free_heap ? Math.round(data.free_heap / 1024) : 0;
+  const removeNode = useMapStore((s) => s.removeNode);
+
+  const handleDelete = async () => {
+    try {
+      removeNode(data.node_id);
+      showToast(`Node ${data.node_id} silindi`, 'info');
+      await nodesService.remove(data.node_id);
+    } catch (e) {
+      console.error('Failed to delete node', e);
+      showToast('Node silinemedi', 'error');
+    }
+  };
 
   return (
     <div className={`
@@ -48,6 +62,14 @@ const NodeCard = ({ data }) => {
           <span className="text-mesh-muted">Süre:</span>
           <span className="text-mesh-muted">{timeAgo(data.last_seen)}</span>
         </div>
+      </div>
+      <div className="mt-3 text-right">
+        <button
+          onClick={handleDelete}
+          className="text-[10px] uppercase tracking-wider font-bebas bg-mesh-disabled hover:bg-mesh-danger text-white px-3 py-1 rounded transition-colors"
+        >
+          Node'u Sil
+        </button>
       </div>
     </div>
   );

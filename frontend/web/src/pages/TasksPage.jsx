@@ -49,6 +49,21 @@ const TasksPage = () => {
       addToast({ type: 'error', title: 'Silinemedi', message: err.response?.data?.detail || err.message });
     }
   };
+
+  const handleMatch = async (id) => {
+    if (isDemo) {
+      updateTask(id, { assigned_to: 'Demo Gönüllü', status: 'assigned' });
+      addToast({ type: 'success', message: 'Gönüllü atandı (demo)' });
+      return;
+    }
+    try {
+      const matched = await tasksService.match(id);
+      updateTask(id, matched);
+      addToast({ type: 'success', message: 'En uygun gönüllü atandı' });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Eşleşme Hatası', message: err.response?.data?.detail || err.message });
+    }
+  };
   const [activeFilter, setActiveFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
@@ -110,6 +125,7 @@ const TasksPage = () => {
                 task={task}
                 onChangeStatus={handleStatusChange}
                 onDelete={(id) => setConfirmDel(id)}
+                onMatch={handleMatch}
               />
             ))
           )}

@@ -51,6 +51,10 @@ const useMapStore = create((set) => ({
     return { nodeList: [...state.nodeList, node] };
   }),
 
+  removeNode: (id) => set((state) => ({
+    nodeList: state.nodeList.filter((n) => n.node_id !== id),
+  })),
+
   setAssemblyList: (list) => set({ assemblyList: list }),
   setSosList: (list) => set({ sosList: list }),
   setRequestList: (list) => set({ requestList: list }),

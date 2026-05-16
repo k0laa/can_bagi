@@ -59,6 +59,9 @@ export const useWebSocket = () => {
 
     const onSosResolved = (data) => {
       if (!data?.id) return;
+      const exists = useMapStore.getState().sosList.some(s => s.id === data.id);
+      if (!exists) return; // Eğer zaten listede yoksa (optimistic update ile silindiyse veya 2. kez geldiyse) işlem yapma
+      
       removeSOS(data.id);
       addToast({
         type: 'success',
