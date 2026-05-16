@@ -6,6 +6,7 @@ import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/connection_status.dart';
 import '../../../shared/widgets/location_permission.dart';
 import '../widgets/sos_button.dart';
+import '../widgets/bell_button.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -34,6 +35,11 @@ class HomeScreen extends StatelessWidget {
                       context.go('/sos-error', extra: error);
                     },
                   ),
+
+                  const SizedBox(height: 32),
+
+                  // Zil Butonu
+                  const BellButton(),
 
                   const SizedBox(height: 32),
 

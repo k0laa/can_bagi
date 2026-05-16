@@ -50,6 +50,35 @@ class SosService {
 
   bool _isAlarmPlaying = false;
 
+  /// Acil durum sirene sesini çalar (uzun ve yüksek sesli)
+  /// Enkaz altında kalan kişilerin dikkat çekmesi için tasarlandı
+  Future<void> playEmergencySiren({bool looping = true}) async {
+    try {
+      if (_isAlarmPlaying) return;
+      
+      _isAlarmPlaying = true;
+
+      // Flutter ringtone player - sistem acil durum sesi
+      // Android: RINGTONE (çok yüksek ses)
+      // iOS: SIREN
+      await FlutterRingtonePlayer().play(
+        android: AndroidSounds.ringtone, // En yüksek ses seviyesi
+        ios: IosSounds.siren,
+        looping: looping,
+        volume: 1.0, // Maksimum ses
+      );
+
+      if (kDebugMode) {
+        debugPrint('Acil durum sirene sesi çalmaya başladı');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Siren sesi çalma hatası: $e');
+      }
+      _isAlarmPlaying = false;
+    }
+  }
+
   /// Telefonun varsayılan alarm/notification sesini çalar
   /// SOS butonuna basıldığı sürece çalar
   Future<void> playAlertSound({bool looping = true}) async {
