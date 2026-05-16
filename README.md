@@ -14,26 +14,7 @@ Afet anında klasik iletişim altyapıları yıkıldığında hayatta kalma şar
 
 ## Mimari
 
-```
-[Saha - İnternet Yok]                    [Komuta Merkezi]
-
-Flutter Mobil App                         React Web Dashboard
-  - ACİL SOS (kayıtsız)                    - Leaflet Harita (offline)
-  - Yardım Talepleri (kayıtlı)             - Canlı SOS/Request listesi
-  - Görev Sayfası (kayıtlı)               - Node durumu
-  - Profil                                 - Görev yönetimi
-        ↓                                  - Koordinatör paneli
-  İnternet varsa → Backend direkt               ↑ WebSocket
-  İnternet yoksa → ESP32 WiFi AP          ws://backend/ws/dashboard
-        ↓
-  ESP32 Node-1  ←mesh→  ESP32 Node-2
-  ESP32 Node-3  ←mesh→  ESP32 Node-4
-                              ↓
-                        ESP32 Gateway
-                              ↓
-                        FastAPI Backend
-                        MySQL Veritabanı
-```
+![architecture.svg](assets/architecture.svg)
 
 1. **Saha Node'ları (`firmware/node_firmware`)**
     - Kurban veya saha görevlisi telefonu ile bağlanır
