@@ -1,4 +1,5 @@
 # Can Bağı Firmware
+![logo](../assets/logo_192.png)
 
 Firmware klasörü ESP32 tabanlı saha cihazlarının çalıştırıldığı kodu içerir. Bu kodlar mesh ağı üzerinden haberleşmeyi ve mobil cihazlarla bağlantıyı sağlar.
 
