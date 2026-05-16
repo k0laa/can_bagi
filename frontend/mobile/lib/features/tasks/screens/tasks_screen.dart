@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../core/providers/location_provider.dart';
 import '../../../core/providers/websocket_provider.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/app_toast.dart';

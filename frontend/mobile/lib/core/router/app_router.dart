@@ -25,8 +25,8 @@ class AppRouter {
       redirect: (context, state) {
         final loc = state.matchedLocation;
         final isAuthPage = loc == '/login' || loc == '/register';
-        // Zaten login/register sayfasındaysa ve giriş yaptıysa ana sayfaya yönlendir
         if (authProvider.isLoggedIn && isAuthPage) return '/';
+        if (!authProvider.isLoggedIn && loc == '/profile') return '/login';
         return null;
       },
       routes: [
