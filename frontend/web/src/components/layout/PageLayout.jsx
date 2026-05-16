@@ -5,6 +5,7 @@ import TopBar from './TopBar';
 import SosList from './SosList';
 import ToastContainer from '../ui/Toast';
 import useWebSocket from '../../hooks/useWebSocket';
+import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts';
 import { primeAudio } from '../../utils/soundUtils';
 import useMapStore from '../../store/mapStore';
 import useTaskStore from '../../store/taskStore';
@@ -13,6 +14,7 @@ import { mockSOS, mockRequests, mockNodes, mockAssembly, mockTasks } from '../..
 const PageLayout = () => {
   const [sosListOpen, setSosListOpen] = useState(true);
   const { status: wsStatus } = useWebSocket();
+  useKeyboardShortcuts();
   const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
   const setTasks = useTaskStore((s) => s.setTasks);
 

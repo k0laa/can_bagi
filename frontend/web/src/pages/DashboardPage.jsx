@@ -3,6 +3,7 @@ import MapContainer from '../components/map/MapContainer';
 import MapFilters from '../components/map/MapFilters';
 import Modal from '../components/ui/Modal';
 import TaskForm from '../components/dashboard/TaskForm';
+import DashboardStatsBar from '../components/dashboard/DashboardStatsBar';
 
 const DashboardPage = () => {
   const mapRef = useRef(null);
@@ -17,6 +18,7 @@ const DashboardPage = () => {
   return (
     <div className="relative w-full" style={{ height: '100%' }}>
       <MapContainer mapRef={mapRef} onCreateTask={handleCreateTask} />
+      <DashboardStatsBar />
       <MapFilters />
 
       <Modal

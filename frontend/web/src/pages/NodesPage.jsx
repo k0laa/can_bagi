@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import useMapStore from '../store/mapStore';
 import StatCard from '../components/dashboard/StatCard';
 import NodeCard from '../components/dashboard/NodeCard';
+import EmptyState from '../components/ui/EmptyState';
 
 const NodesPage = () => {
   const nodeList = useMapStore((s) => s.nodeList);
@@ -24,10 +25,12 @@ const NodesPage = () => {
       </div>
 
       {nodeList.length === 0 ? (
-        <div className="bg-mesh-card rounded-lg p-8 text-center">
-          <p className="font-bebas text-2xl text-mesh-muted tracking-widest">
-            NODE BULUNAMADI
-          </p>
+        <div className="bg-mesh-card rounded-lg">
+          <EmptyState
+            icon="📡"
+            title="NODE BULUNAMADI"
+            description="Bağlı ESP32 node yok. Cihazları kontrol edin."
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

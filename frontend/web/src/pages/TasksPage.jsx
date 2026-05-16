@@ -5,6 +5,7 @@ import TaskCard from '../components/dashboard/TaskCard';
 import TaskForm from '../components/dashboard/TaskForm';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
+import EmptyState from '../components/ui/EmptyState';
 
 const FILTERS = [
   { key: 'all', label: 'Tümü' },
@@ -63,13 +64,12 @@ const TasksPage = () => {
       <div className={`grid gap-5 ${showForm ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
         <div className={`${showForm ? 'lg:col-span-2' : ''} flex flex-col gap-3`}>
           {filtered.length === 0 ? (
-            <div className="bg-mesh-card rounded-lg p-8 text-center">
-              <p className="font-bebas text-2xl text-mesh-muted tracking-widest">
-                GÖREV YOK
-              </p>
-              <p className="font-nunito text-xs text-mesh-disabled mt-1">
-                Bu durumda görev bulunmuyor.
-              </p>
+            <div className="bg-mesh-card rounded-lg">
+              <EmptyState
+                icon="✅"
+                title="GÖREV YOK"
+                description="Bu durumda görev bulunmuyor. Yeni görev oluşturmak için sağ üstteki butona basın."
+              />
             </div>
           ) : (
             filtered.map((task) => (
