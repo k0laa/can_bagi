@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/location_provider.dart';
 import '../../../shared/widgets/app_top_bar.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -155,10 +156,15 @@ class _LoggedInViewState extends State<_LoggedInView> {
 
   Future<void> _save() async {
     try {
+      final loc = context.read<LocationProvider>();
+      final pos = await loc.getCurrentPosition();
+
       await widget.auth.updateProfile(
         name: _nameCtr.text.trim(),
         surname: _surnameCtr.text.trim(),
         bloodType: _bloodType,
+        lat: pos?.latitude,
+        lon: pos?.longitude,
       );
       if (mounted) {
         AppToast.show(context, 'Profil güncellendi',
