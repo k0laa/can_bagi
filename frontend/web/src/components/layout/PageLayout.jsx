@@ -7,18 +7,21 @@ import ToastContainer from '../ui/Toast';
 import useWebSocket from '../../hooks/useWebSocket';
 import { primeAudio } from '../../utils/soundUtils';
 import useMapStore from '../../store/mapStore';
-import { mockSOS, mockRequests, mockNodes, mockAssembly } from '../../utils/mockData';
+import useTaskStore from '../../store/taskStore';
+import { mockSOS, mockRequests, mockNodes, mockAssembly, mockTasks } from '../../utils/mockData';
 
 const PageLayout = () => {
   const [sosListOpen, setSosListOpen] = useState(true);
   const { status: wsStatus } = useWebSocket();
   const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
+  const setTasks = useTaskStore((s) => s.setTasks);
 
   useEffect(() => {
     setSosList(mockSOS);
     setRequestList(mockRequests);
     setNodeList(mockNodes);
     setAssemblyList(mockAssembly);
+    setTasks(mockTasks);
   }, []);
 
   useEffect(() => {

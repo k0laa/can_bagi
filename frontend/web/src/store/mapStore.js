@@ -34,6 +34,22 @@ const useMapStore = create((set) => ({
   setRequestList: (list) => set({ requestList: list }),
   setNodeList: (list) => set({ nodeList: list }),
 
+  addAssembly: (point) =>
+    set((state) => {
+      const id = state.assemblyList.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
+      return {
+        assemblyList: [
+          ...state.assemblyList,
+          { current_count: 0, ...point, id },
+        ],
+      };
+    }),
+
+  removeAssembly: (id) =>
+    set((state) => ({
+      assemblyList: state.assemblyList.filter((p) => p.id !== id),
+    })),
+
   mapInstance: null,
   setMapInstance: (map) => set({ mapInstance: map }),
 }));
