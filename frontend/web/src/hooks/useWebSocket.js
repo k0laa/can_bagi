@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import wsService from '../services/wsService';
 import useAuthStore from '../store/authStore';
 import useMapStore from '../store/mapStore';
+import useTaskStore from '../store/taskStore';
 import useToastStore from '../store/toastStore';
 import { playSound } from '../utils/soundUtils';
 import { categoryLabels } from '../utils/mapIcons';
@@ -9,7 +10,8 @@ import { startDemoSimulator, stopDemoSimulator } from '../utils/demoSimulator';
 
 export const useWebSocket = () => {
   const token = useAuthStore((s) => s.token);
-  const { addSOS, addRequest, updateNode } = useMapStore();
+  const { addSOS, removeSOS, addRequest, updateNode } = useMapStore();
+  const upsertTask = useTaskStore((s) => s.upsertTask);
   const addToast = useToastStore((s) => s.addToast);
   const [status, setStatus] = useState('disconnected');
 
@@ -55,11 +57,46 @@ export const useWebSocket = () => {
       }
     };
 
+    const onSosResolved = (data) => {
+      if (!data?.id) return;
+      removeSOS(data.id);
+      addToast({
+        type: 'success',
+        title: '✅ SOS Çözüldü',
+        message: `SOS #${data.id} kapatıldı`,
+      });
+    };
+
+    const onTaskAssigned = (data) => {
+      if (!data) return;
+      upsertTask(data);
+      addToast({
+        type: 'info',
+        title: '📋 Görev Atandı',
+        message: `${data.title || 'Görev'} → ${data.assigned_to || 'kullanıcı'}`,
+      });
+    };
+
+    const onTaskUpdated = (data) => {
+      if (!data) return;
+      upsertTask(data);
+      if (data.status === 'completed') {
+        addToast({
+          type: 'success',
+          title: '✅ Görev Tamamlandı',
+          message: data.title || `Görev #${data.id}`,
+        });
+      }
+    };
+
     wsService.on('connected', onConnected);
     wsService.on('disconnected', onDisconnected);
     wsService.on('NEW_SOS', onNewSos);
     wsService.on('NEW_REQUEST', onNewRequest);
     wsService.on('NODE_STATUS', onNodeStatus);
+    wsService.on('SOS_RESOLVED', onSosResolved);
+    wsService.on('TASK_ASSIGNED', onTaskAssigned);
+    wsService.on('TASK_UPDATED', onTaskUpdated);
 
     const isDemoMode = token === 'dev-test-token';
     if (isDemoMode) {
@@ -74,13 +111,16 @@ export const useWebSocket = () => {
       wsService.off('NEW_SOS', onNewSos);
       wsService.off('NEW_REQUEST', onNewRequest);
       wsService.off('NODE_STATUS', onNodeStatus);
+      wsService.off('SOS_RESOLVED', onSosResolved);
+      wsService.off('TASK_ASSIGNED', onTaskAssigned);
+      wsService.off('TASK_UPDATED', onTaskUpdated);
       if (isDemoMode) {
         stopDemoSimulator();
       } else {
         wsService.disconnect();
       }
     };
-  }, [token, addSOS, addRequest, updateNode, addToast]);
+  }, [token, addSOS, removeSOS, addRequest, updateNode, upsertTask, addToast]);
 
   return { status };
 };

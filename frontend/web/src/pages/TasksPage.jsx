@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import useTaskStore from '../store/taskStore';
+import useAuthStore from '../store/authStore';
 import useToastStore from '../store/toastStore';
 import TaskCard from '../components/dashboard/TaskCard';
 import TaskForm from '../components/dashboard/TaskForm';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import EmptyState from '../components/ui/EmptyState';
+import tasksService from '../services/tasksService';
 
 const FILTERS = [
   { key: 'all', label: 'Tümü' },
@@ -17,6 +19,36 @@ const FILTERS = [
 const TasksPage = () => {
   const { tasks, updateTask, deleteTask } = useTaskStore();
   const addToast = useToastStore((s) => s.addToast);
+  const token = useAuthStore((s) => s.token);
+  const isDemo = token === 'dev-test-token';
+
+  const handleStatusChange = async (id, status) => {
+    updateTask(id, { status });
+    if (isDemo) {
+      addToast({ type: 'success', message: 'Görev durumu güncellendi (demo)' });
+      return;
+    }
+    try {
+      await tasksService.update(id, { status });
+      addToast({ type: 'success', message: 'Görev durumu güncellendi' });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Güncellenemedi', message: err.response?.data?.detail || err.message });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    deleteTask(id);
+    if (isDemo) {
+      addToast({ type: 'success', message: 'Görev silindi (demo)' });
+      return;
+    }
+    try {
+      await tasksService.remove(id);
+      addToast({ type: 'success', message: 'Görev silindi' });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Silinemedi', message: err.response?.data?.detail || err.message });
+    }
+  };
   const [activeFilter, setActiveFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
@@ -76,10 +108,7 @@ const TasksPage = () => {
               <TaskCard
                 key={task.id}
                 task={task}
-                onChangeStatus={(id, status) => {
-                  updateTask(id, { status });
-                  addToast({ type: 'success', message: 'Görev durumu güncellendi' });
-                }}
+                onChangeStatus={handleStatusChange}
                 onDelete={(id) => setConfirmDel(id)}
               />
             ))
@@ -100,8 +129,7 @@ const TasksPage = () => {
         confirmText="Sil"
         variant="danger"
         onConfirm={() => {
-          deleteTask(confirmDel);
-          addToast({ type: 'success', message: 'Görev silindi' });
+          handleDelete(confirmDel);
           setConfirmDel(null);
         }}
       >

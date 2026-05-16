@@ -9,7 +9,13 @@ import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts';
 import { primeAudio } from '../../utils/soundUtils';
 import useMapStore from '../../store/mapStore';
 import useTaskStore from '../../store/taskStore';
+import useAuthStore from '../../store/authStore';
+import useToastStore from '../../store/toastStore';
 import { mockSOS, mockRequests, mockNodes, mockAssembly, mockTasks } from '../../utils/mockData';
+import sosService from '../../services/sosService';
+import needsService from '../../services/needsService';
+import nodesService from '../../services/nodesService';
+import tasksService from '../../services/tasksService';
 
 const PageLayout = () => {
   const [sosListOpen, setSosListOpen] = useState(true);
@@ -17,14 +23,30 @@ const PageLayout = () => {
   useKeyboardShortcuts();
   const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
   const setTasks = useTaskStore((s) => s.setTasks);
+  const token = useAuthStore((s) => s.token);
+  const addToast = useToastStore((s) => s.addToast);
 
   useEffect(() => {
-    setSosList(mockSOS);
-    setRequestList(mockRequests);
-    setNodeList(mockNodes);
+    if (!token) return;
+    const isDemo = token === 'dev-test-token';
+
+    if (isDemo) {
+      setSosList(mockSOS);
+      setRequestList(mockRequests);
+      setNodeList(mockNodes);
+      setAssemblyList(mockAssembly);
+      setTasks(mockTasks);
+      return;
+    }
+
+    // Backend'den paralel olarak çek; her biri ayrı catch ile fail-safe
+    sosService.list().then(setSosList).catch(() => setSosList([]));
+    needsService.list().then(setRequestList).catch(() => setRequestList([]));
+    nodesService.list().then(setNodeList).catch(() => setNodeList([]));
+    tasksService.list().then(setTasks).catch(() => setTasks([]));
+    // Toplanma noktaları için backend endpoint'i tanımlı değil → boş başlat
     setAssemblyList(mockAssembly);
-    setTasks(mockTasks);
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     const handler = () => primeAudio();

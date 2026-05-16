@@ -1,18 +1,20 @@
 import { create } from 'zustand';
 
-let _id = 100;
-const nextId = () => ++_id;
+let _localId = 100000;
+const nextLocalId = () => ++_localId;
+
+// Backend task schema: { id, title, type, lat, lon, status, assigned_to, created_at }
 
 const useTaskStore = create((set) => ({
   tasks: [],
 
-  setTasks: (list) => set({ tasks: list }),
+  setTasks: (list) => set({ tasks: list || [] }),
 
   addTask: (task) =>
     set((state) => ({
       tasks: [
         {
-          id: nextId(),
+          id: task.id ?? nextLocalId(),
           status: 'pending',
           assigned_to: null,
           created_at: new Date().toISOString(),
@@ -21,6 +23,18 @@ const useTaskStore = create((set) => ({
         ...state.tasks,
       ],
     })),
+
+  upsertTask: (task) =>
+    set((state) => {
+      if (!task || task.id == null) return state;
+      const exists = state.tasks.find((t) => t.id === task.id);
+      if (exists) {
+        return {
+          tasks: state.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)),
+        };
+      }
+      return { tasks: [task, ...state.tasks] };
+    }),
 
   updateTask: (id, patch) =>
     set((state) => ({

@@ -28,6 +28,7 @@ const DashboardPage = () => {
         size="lg"
       >
         <TaskForm
+          prefill={taskSource ? { lat: taskSource.lat, lon: taskSource.lon } : null}
           onCreated={() => setTaskFormOpen(false)}
           onCancel={() => setTaskFormOpen(false)}
         />

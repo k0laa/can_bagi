@@ -9,12 +9,34 @@ const useMapStore = create((set) => ({
 
   setFilter: (filter) => set({ activeFilter: filter }),
 
-  addSOS: (sos) => set((state) => ({
-    sosList: [sos, ...state.sosList],
+  addSOS: (sos) => set((state) => {
+    if (sos?.id != null && state.sosList.find((s) => s.id === sos.id)) {
+      return { sosList: state.sosList.map((s) => (s.id === sos.id ? { ...s, ...sos } : s)) };
+    }
+    return { sosList: [sos, ...state.sosList] };
+  }),
+
+  removeSOS: (id) => set((state) => ({
+    sosList: state.sosList.filter((s) => s.id !== id),
   })),
 
-  addRequest: (req) => set((state) => ({
-    requestList: [req, ...state.requestList],
+  updateSOS: (id, patch) => set((state) => ({
+    sosList: state.sosList.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+  })),
+
+  addRequest: (req) => set((state) => {
+    if (req?.id != null && state.requestList.find((r) => r.id === req.id)) {
+      return { requestList: state.requestList.map((r) => (r.id === req.id ? { ...r, ...req } : r)) };
+    }
+    return { requestList: [req, ...state.requestList] };
+  }),
+
+  removeRequest: (id) => set((state) => ({
+    requestList: state.requestList.filter((r) => r.id !== id),
+  })),
+
+  updateRequest: (id, patch) => set((state) => ({
+    requestList: state.requestList.map((r) => (r.id === id ? { ...r, ...patch } : r)),
   })),
 
   updateNode: (node) => set((state) => {

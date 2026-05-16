@@ -5,7 +5,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const { login, loading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearError();
-    const success = await login(username, password);
+    const success = await login(phone, password);
     if (success) navigate('/');
   };
 
@@ -32,11 +32,11 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Input
-              label="Kullanıcı Adı"
-              placeholder="koordinator"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              label="Telefon"
+              placeholder="05551234567"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
               required
             />
             <Input
@@ -72,7 +72,7 @@ const LoginPage = () => {
             </p>
             {import.meta.env.DEV && (
               <p className="font-nunito text-xs text-mesh-warning mt-2">
-                🔧 Dev: <strong>test</strong> / <strong>test</strong>
+                🔧 Demo: <strong>test</strong> / <strong>test</strong>
               </p>
             )}
           </div>
