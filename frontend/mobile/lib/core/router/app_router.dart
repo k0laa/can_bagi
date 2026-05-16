@@ -21,16 +21,12 @@ class AppRouter {
   static GoRouter createRouter(AuthProvider authProvider) {
     return GoRouter(
       initialLocation: '/',
-      
+      refreshListenable: authProvider,
       redirect: (context, state) {
-        final isLoggedIn = authProvider.isLoggedIn;
         final loc = state.matchedLocation;
         final isAuthPage = loc == '/login' || loc == '/register';
-
-        if (!isLoggedIn && !isAuthPage &&
-            (loc == '/tasks' || loc == '/help' || loc == '/profile')) {
-          return null; // soft gate, engelleme
-        }
+        // Zaten login/register sayfasındaysa ve giriş yaptıysa ana sayfaya yönlendir
+        if (authProvider.isLoggedIn && isAuthPage) return '/';
         return null;
       },
       routes: [

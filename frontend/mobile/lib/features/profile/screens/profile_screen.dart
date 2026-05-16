@@ -193,8 +193,9 @@ class _LoggedInViewState extends State<_LoggedInView> {
       ),
     );
     if (confirm == true && mounted) {
+      final router = GoRouter.of(context);
       await widget.auth.logout();
-      if(mounted) context.go('/');
+      router.go('/login');
     }
   }
 
