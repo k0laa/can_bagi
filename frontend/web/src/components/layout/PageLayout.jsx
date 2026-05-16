@@ -1,12 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import SidebarNav from './SidebarNav';
 import TopBar from './TopBar';
 import SosList from './SosList';
 import ToastContainer from '../ui/Toast';
+import useWebSocket from '../../hooks/useWebSocket';
+import { primeAudio } from '../../utils/soundUtils';
+import useMapStore from '../../store/mapStore';
+import { mockSOS, mockRequests, mockNodes, mockAssembly } from '../../utils/mockData';
 
-const PageLayout = ({ wsStatus }) => {
+const PageLayout = () => {
   const [sosListOpen, setSosListOpen] = useState(true);
+  const { status: wsStatus } = useWebSocket();
+  const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
+
+  useEffect(() => {
+    setSosList(mockSOS);
+    setRequestList(mockRequests);
+    setNodeList(mockNodes);
+    setAssemblyList(mockAssembly);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => primeAudio();
+    window.addEventListener('click', handler, { once: true });
+    window.addEventListener('keydown', handler, { once: true });
+    return () => {
+      window.removeEventListener('click', handler);
+      window.removeEventListener('keydown', handler);
+    };
+  }, []);
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-mesh-bg">

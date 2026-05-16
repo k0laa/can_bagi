@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
 import useAuthStore from './store/authStore';
 import PageLayout from './components/layout/PageLayout';
 import LoginPage from './pages/LoginPage';
@@ -21,8 +20,6 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
-  const [wsStatus, setWsStatus] = useState('disconnected');
-
   return (
     <BrowserRouter>
       <Routes>
@@ -38,7 +35,7 @@ const App = () => {
           path="/"
           element={
             <ProtectedRoute>
-              <PageLayout wsStatus={wsStatus} />
+              <PageLayout />
             </ProtectedRoute>
           }
         >
