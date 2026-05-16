@@ -25,39 +25,44 @@ AsyncWebServer server(80);
 Scheduler      taskScheduler;
 bool           apStarted = false;   // tek seferlik guard
 
-// ── Heartbeat ────────────────────────────────
+// ── Heartbeat ─────────────────────────────────────────────────────────────────
+// Değişiklik: free_heap eklendi → backend POST /nodes/heartbeat {"node_id", "free_heap"} bekliyor
 Task taskHeartbeat(HEARTBEAT_MS, TASK_FOREVER, []() {
-  StaticJsonDocument<128> doc;
-  doc["type"]    = "HEARTBEAT";
-  doc["node_id"] = NODE_ID;
-  doc["ts"]      = millis();
+  StaticJsonDocument<160> doc;
+  doc["type"]      = "HEARTBEAT";
+  doc["node_id"]   = NODE_ID;
+  doc["free_heap"] = ESP.getFreeHeap();
+  doc["ts"]        = millis();
   String msg; serializeJson(doc, msg);
   mesh.sendBroadcast(msg);
 });
 
-// ── Yardımcı ─────────────────────────────────
+// ── Yardımcı ──────────────────────────────────────────────────────────────────
 void broadcast(JsonDocument &doc) {
   String out; serializeJson(doc, out);
   mesh.sendBroadcast(out);
   Serial.printf("[MESH→] %s\n", out.c_str());
 }
 
-// ── HTTP API ──────────────────────────────────
+// ── HTTP API ───────────────────────────────────────────────────────────────────
 void setupPhoneAPI() {
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin",  "*");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // Değişiklik: preflight OPTIONS her path için güvenli şekilde yanıtlanır
   server.onNotFound([](AsyncWebServerRequest *req) {
-    if (req->method() == HTTP_OPTIONS) req->send(200);
-    else req->send(404);
+    if (req->method() == HTTP_OPTIONS) { req->send(200); return; }
+    req->send(404);
   });
-  
+
+  // Değişiklik: free_heap eklendi
   server.on("/ping", HTTP_GET, [](AsyncWebServerRequest *req) {
     StaticJsonDocument<256> doc;
-    doc["status"]  = "pong";
-    doc["node_id"] = NODE_ID;
-    doc["ip"]      = WiFi.softAPIP().toString(); 
+    doc["status"]    = "pong";
+    doc["node_id"]   = NODE_ID;
+    doc["free_heap"] = ESP.getFreeHeap();
+    doc["ip"]        = "192.168.4.1";
     String out; serializeJson(doc, out);
     req->send(200, "application/json", out);
   });
@@ -66,11 +71,13 @@ void setupPhoneAPI() {
     StaticJsonDocument<256> doc;
     doc["node_id"]    = NODE_ID;
     doc["mesh_nodes"] = mesh.getNodeList().size();
+    doc["free_heap"]  = ESP.getFreeHeap();
     doc["uptime_ms"]  = millis();
     String out; serializeJson(doc, out);
     req->send(200, "application/json", out);
   });
 
+  // Değişiklik: node_id body'den okunur, yoksa NODE_ID sabiti (fallback)
   server.on("/sos", HTTP_POST, [](AsyncWebServerRequest *req){}, nullptr,
     [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t, size_t) {
       StaticJsonDocument<256> body;
@@ -78,7 +85,7 @@ void setupPhoneAPI() {
 
       StaticJsonDocument<512> msg;
       msg["type"]    = "SOS";
-      msg["node_id"] = NODE_ID;
+      msg["node_id"] = body["node_id"] | NODE_ID;
       msg["ts"]      = millis();
       msg["lat"]     = body["lat"] | 0.0;
       msg["lon"]     = body["lon"] | 0.0;
@@ -88,6 +95,8 @@ void setupPhoneAPI() {
     }
   );
 
+  // Not: rota /request olarak kalıyor (Flutter bu adrese POST atar),
+  // mesh mesaj tipi "REQUEST" → backend /needs/ endpoint'ine yönlenir (gateway endpoint() fn)
   server.on("/request", HTTP_POST, [](AsyncWebServerRequest *req){}, nullptr,
     [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t, size_t) {
       StaticJsonDocument<512> body;
@@ -98,13 +107,13 @@ void setupPhoneAPI() {
 
       StaticJsonDocument<768> msg;
       msg["type"]         = "REQUEST";
-      msg["node_id"]      = NODE_ID;
+      msg["node_id"]      = body["node_id"]      | NODE_ID;
       msg["ts"]           = millis();
-      msg["category"]     = body["category"]    | "UNKNOWN";
-      msg["lat"]          = body["lat"]          | 0.0;
-      msg["lon"]          = body["lon"]          | 0.0;
-      msg["people_count"] = body["people_count"] | 1;
-      msg["details"]      = body["details"]      | "";
+      msg["category"]     = body["category"]     | "UNKNOWN";
+      msg["lat"]          = body["lat"]           | 0.0;
+      msg["lon"]          = body["lon"]           | 0.0;
+      msg["people_count"] = body["people_count"]  | 1;
+      msg["details"]      = body["details"]       | "";
       broadcast(msg);
 
       req->send(200, "application/json", "{\"status\":\"sent\"}");
@@ -115,7 +124,7 @@ void setupPhoneAPI() {
   Serial.println("[API] HTTP sunucu hazır → http://192.168.4.1");
 }
 
-// ── Mesh callbacks ───────────────────────────
+// ── Mesh callbacks ─────────────────────────────────────────────────────────────
 void onNewConnection(uint32_t id) {
   Serial.printf("[MESH] Node bağlandı: %u\n", id);
 
@@ -137,7 +146,7 @@ void onMeshMessage(uint32_t from, String &raw) {
   Serial.printf("[MESH←] %s\n", raw.c_str());
 }
 
-// ── Setup ────────────────────────────────────
+// ── Setup ──────────────────────────────────────────────────────────────────────
 void setup() {
   Serial.begin(115200);
   delay(500);

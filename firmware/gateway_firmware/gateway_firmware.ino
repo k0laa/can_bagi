@@ -24,26 +24,26 @@ Scheduler    taskScheduler;
 
 // Mesh'ten gelen her mesajı Serial'a yaz (tek satır JSON)
 void onMeshMessage(uint32_t from, String &raw) {
-  // Wrapper: kim gönderdi + ham mesaj
   StaticJsonDocument<1024> wrapper;
-  wrapper["from_node"] = from;
+  // Değişiklik: gateway_id eklendi
+  wrapper["gateway_id"]  = NODE_ID;
+  wrapper["from_node"]   = from;
   wrapper["received_ms"] = millis();
 
-  // Ham JSON'u parse et (tip bilgisi için)
   StaticJsonDocument<512> inner;
-  deserializeJson(inner, raw);   // hata olsa boş kalır
+  deserializeJson(inner, raw);
   wrapper["payload"] = inner;
 
   String line;
   serializeJson(wrapper, line);
-  Serial.println(line);   // ← Python bu satırı okur
+  Serial.println(line);
 }
 
 void onNewConnection(uint32_t id) {
-  // Bilgi amaçlı, Python tarafında loglanır
   StaticJsonDocument<128> doc;
   doc["event"]   = "NODE_CONNECTED";
-  doc["node_id"] = id;
+  // Değişiklik: String(id) → uint32_t taşma riskini önler
+  doc["node_id"] = String(id);
   String line; serializeJson(doc, line);
   Serial.println(line);
 }
@@ -51,16 +51,15 @@ void onNewConnection(uint32_t id) {
 void onDroppedConnection(uint32_t id) {
   StaticJsonDocument<128> doc;
   doc["event"]   = "NODE_DISCONNECTED";
-  doc["node_id"] = id;
+  doc["node_id"] = String(id);
   String line; serializeJson(doc, line);
   Serial.println(line);
 }
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  //sistem güç aldığından, ve porta bağlandığından emin olup veri kaybı yaşamamak için delay.
   delay(4500);
-  Serial.println("{\"event\":\"GATEWAY_BOOT\",\"node_id\":\"" NODE_ID "\"}");
+  Serial.println("{\"event\":\"GATEWAY_BOOT\",\"gateway_id\":\"" NODE_ID "\"}");
 
   mesh.setDebugMsgTypes(ERROR | STARTUP);   // sadece hataları logla
   mesh.init(MESH_PREFIX, MESH_PASSWORD, &taskScheduler, MESH_PORT);
