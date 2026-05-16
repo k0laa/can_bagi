@@ -9,7 +9,11 @@ class TaskModel {
   final String startTime;
   final String endTime;
   final String description;
-  final String status; // open | accepted | completed
+  final String status; // open | assigned | completed
+  final int priorityScore;
+  final int maxAssignees;
+  final int currentAssignees;
+  final String? assignedTo;
 
   const TaskModel({
     required this.id,
@@ -21,19 +25,43 @@ class TaskModel {
     required this.endTime,
     required this.description,
     required this.status,
+    this.priorityScore = 0,
+    this.maxAssignees = 1,
+    this.currentAssignees = 0,
+    this.assignedTo,
   });
 
-  factory TaskModel.fromJson(Map<String, dynamic> json) => TaskModel(
-    id: json['id'] as int? ?? 0,
-    type: json['type'] as String? ?? 'UNKNOWN',
-    title: json['title'] as String? ?? 'Görev',
-    assemblyPoint: AssemblyPointModel.fromJson(json['assembly_point'] as Map<String, dynamic>? ?? {}),
-    peopleNeeded: json['people_needed'] as int? ?? 1,
-    startTime: json['start_time'] as String? ?? 'Bilinmiyor',
-    endTime: json['end_time'] as String? ?? 'Bilinmiyor',
-    description: json['description'] as String? ?? '',
-    status: json['status'] as String? ?? 'open',
-  );
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
+    AssemblyPointModel assemblyPoint;
+    if (json['assembly_point'] != null) {
+      assemblyPoint = AssemblyPointModel.fromJson(
+          json['assembly_point'] as Map<String, dynamic>);
+    } else {
+      assemblyPoint = AssemblyPointModel(
+        id: 0,
+        name: json['title'] as String? ?? 'Görev Noktası',
+        lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+        lon: (json['lon'] as num?)?.toDouble() ?? 0.0,
+      );
+    }
+
+    return TaskModel(
+      id: json['id'] as int? ?? 0,
+      type: json['type'] as String? ?? 'UNKNOWN',
+      title: json['title'] as String? ?? 'Görev',
+      assemblyPoint: assemblyPoint,
+      peopleNeeded: json['people_needed'] as int? ??
+          (json['max_assignees'] as int? ?? 1),
+      startTime: json['start_time'] as String? ?? 'Bilinmiyor',
+      endTime: json['end_time'] as String? ?? 'Bilinmiyor',
+      description: json['description'] as String? ?? '',
+      status: json['status'] as String? ?? 'open',
+      priorityScore: json['priority_score'] as int? ?? 0,
+      maxAssignees: json['max_assignees'] as int? ?? 1,
+      currentAssignees: json['current_assignees'] as int? ?? 0,
+      assignedTo: json['assigned_to']?.toString(),
+    );
+  }
 
   TaskModel copyWith({
     int? id,
@@ -45,6 +73,10 @@ class TaskModel {
     String? endTime,
     String? description,
     String? status,
+    int? priorityScore,
+    int? maxAssignees,
+    int? currentAssignees,
+    String? assignedTo,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -56,6 +88,10 @@ class TaskModel {
       endTime: endTime ?? this.endTime,
       description: description ?? this.description,
       status: status ?? this.status,
+      priorityScore: priorityScore ?? this.priorityScore,
+      maxAssignees: maxAssignees ?? this.maxAssignees,
+      currentAssignees: currentAssignees ?? this.currentAssignees,
+      assignedTo: assignedTo ?? this.assignedTo,
     );
   }
 }

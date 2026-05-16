@@ -38,7 +38,8 @@ class MeshAidApp extends StatelessWidget {
       ],
       child: Builder(
         builder: (context) {
-          final router = AppRouter.router;
+          final authProvider = context.read<AuthProvider>();
+          final router = AppRouter.createRouter(authProvider);
           return MaterialApp.router(
             scaffoldMessengerKey: AppConstants.scaffoldMessengerKey,
             title: 'MeshAid',

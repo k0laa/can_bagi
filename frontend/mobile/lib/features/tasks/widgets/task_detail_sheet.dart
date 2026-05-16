@@ -4,6 +4,12 @@ import '../../../shared/widgets/app_button.dart';
 import '../models/task_model.dart';
 import 'direction_indicator.dart';
 
+String _priorityLabel(int score) {
+  if (score >= 8) return 'YÜKSEK';
+  if (score >= 5) return 'ORTA';
+  return 'DÜŞÜK';
+}
+
 class TaskDetailSheet extends StatelessWidget {
   final TaskModel task;
   final double? userLat;
@@ -11,6 +17,7 @@ class TaskDetailSheet extends StatelessWidget {
   final bool isTaskActive;
   final bool hasAnyActiveTask;
   final VoidCallback onAccept;
+  final VoidCallback onReject;
   final VoidCallback onComplete;
 
   const TaskDetailSheet({
@@ -21,6 +28,7 @@ class TaskDetailSheet extends StatelessWidget {
     required this.isTaskActive,
     required this.hasAnyActiveTask,
     required this.onAccept,
+    required this.onReject,
     required this.onComplete,
   });
 
@@ -32,6 +40,7 @@ class TaskDetailSheet extends StatelessWidget {
     required bool isTaskActive,
     required bool hasAnyActiveTask,
     required VoidCallback onAccept,
+    required VoidCallback onReject,
     required VoidCallback onComplete,
   }) {
     return showModalBottomSheet(
@@ -48,6 +57,10 @@ class TaskDetailSheet extends StatelessWidget {
           Navigator.of(context).pop();
           onAccept();
         },
+        onReject: () {
+          Navigator.of(context).pop();
+          onReject();
+        },
         onComplete: () {
           Navigator.of(context).pop();
           onComplete();
@@ -58,13 +71,27 @@ class TaskDetailSheet extends StatelessWidget {
 
   String _getEmojiForType(String type) {
     switch (type) {
-      case 'FOOD_DISTRIBUTION': return '📦';
-      case 'WATER_CARRY': return '💧';
-      case 'CLEANING': return '🧹';
-      case 'CARE': return '👴';
-      case 'GUIDANCE': return '📢';
-      default: return '🍳';
+      case 'FOOD_DISTRIBUTION':
+        return '📦';
+      case 'WATER_CARRY':
+        return '💧';
+      case 'CLEANING':
+        return '🧹';
+      case 'CARE':
+        return '👴';
+      case 'GUIDANCE':
+        return '📢';
+      case 'RESCUE':
+        return '🚨';
+      default:
+        return '🍳';
     }
+  }
+
+  Color _getPriorityColor(int score) {
+    if (score >= 8) return AppColors.danger;
+    if (score >= 5) return AppColors.warning;
+    return const Color(0xFFEAB308);
   }
 
   @override
@@ -129,7 +156,6 @@ class TaskDetailSheet extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    
                     Center(
                       child: DirectionIndicator(
                         userLat: userLat,
@@ -139,13 +165,42 @@ class TaskDetailSheet extends StatelessWidget {
                         isLarge: true,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    if (task.priorityScore > 0)
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _getPriorityColor(task.priorityScore)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _getPriorityColor(task.priorityScore),
+                            ),
+                          ),
+                          child: Text(
+                            '⚡ ÖNCELİK: ${_priorityLabel(task.priorityScore)} (${task.priorityScore})',
+                            style: TextStyle(
+                              fontFamily: 'Bebas Neue',
+                              fontSize: 14,
+                              color: _getPriorityColor(task.priorityScore),
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 24),
-
-                    _DetailRow(icon: Icons.access_time, text: '${task.startTime} - ${task.endTime}'),
+                    _DetailRow(
+                        icon: Icons.access_time,
+                        text: '${task.startTime} - ${task.endTime}'),
                     const SizedBox(height: 12),
-                    _DetailRow(icon: Icons.people, text: '${task.peopleNeeded} kişi daha gerekiyor', color: AppColors.warning),
+                    _DetailRow(
+                        icon: Icons.people,
+                        text:
+                            '${task.maxAssignees - task.currentAssignees} / ${task.maxAssignees} kişi gerekiyor',
+                        color: AppColors.warning),
                     const SizedBox(height: 24),
-
                     Text(
                       task.description,
                       style: const TextStyle(
@@ -157,9 +212,9 @@ class TaskDetailSheet extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               if (isTaskActive) ...[
                 const Center(
                   child: Text(
@@ -179,9 +234,23 @@ class TaskDetailSheet extends StatelessWidget {
                   variant: AppButtonVariant.success,
                 ),
               ] else ...[
-                AppButton(
-                  label: 'GÖREVİ KABUL ET',
-                  onPressed: hasAnyActiveTask ? null : onAccept,
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'KABUL ET',
+                        onPressed: hasAnyActiveTask ? null : onAccept,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: AppButton(
+                        label: 'REDDET',
+                        onPressed: onReject,
+                        variant: AppButtonVariant.danger,
+                      ),
+                    ),
+                  ],
                 ),
                 if (hasAnyActiveTask)
                   const Padding(

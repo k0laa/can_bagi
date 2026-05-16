@@ -62,7 +62,7 @@ class AuthService {
     try {
       final res = await _dio.put(
         '${AppConstants.apiBaseUrl}/user/profile',
-        queryParameters: {
+        data: {
           'name':       name,
           'surname':    surname,
           'blood_type': bloodType,

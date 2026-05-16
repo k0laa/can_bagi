@@ -13,73 +13,79 @@ import '../../features/tasks/screens/tasks_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
 import '../providers/location_provider.dart';
+import '../providers/auth_provider.dart';
 
 class AppRouter {
   AppRouter._();
 
-  static final GoRouter router = GoRouter(
-    initialLocation: '/',
-    routes: [
-      // Tam ekran rotalar (bottom nav yok)
-      GoRoute(
-        path: '/confirmation',
-        builder: (context, state) {
-          final extra = state.extra;
-          if (extra is Map<String, dynamic>) {
-            return ConfirmationScreen(
-              response: extra['response'] as SosResponse,
-              category: extra['category'] as String?,
+  static GoRouter createRouter(AuthProvider authProvider) {
+    return GoRouter(
+      initialLocation: '/',
+      redirect: (context, state) {
+        final loc = state.matchedLocation;
+        final isAuthPage = loc == '/login' || loc == '/register';
+        if (authProvider.isLoggedIn && isAuthPage) return '/';
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/confirmation',
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is Map<String, dynamic>) {
+              return ConfirmationScreen(
+                response: extra['response'] as SosResponse,
+                category: extra['category'] as String?,
+              );
+            }
+            return ConfirmationScreen(response: extra as SosResponse);
+          },
+        ),
+        GoRoute(
+          path: '/sos-error',
+          builder: (context, state) {
+            final error = state.extra as Exception;
+            return SosErrorScreen(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () async => context.go('/'),
             );
-          }
-          return ConfirmationScreen(response: extra as SosResponse);
-        },
-      ),
-      GoRoute(
-        path: '/sos-error',
-        builder: (context, state) {
-          final error = state.extra as Exception;
-          return SosErrorScreen(
-            message:  error.toString().replaceFirst('Exception: ', ''),
-            onRetry:  () async => context.go('/'),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/register',
-        builder: (context, state) => const RegisterScreen(),
-      ),
-
-      // Shell rotalar (bottom nav ile)
-      ShellRoute(
-        builder: (context, state, child) => _ScaffoldWithNav(child: child),
-        routes: [
-          GoRoute(path: '/',        builder: (_, __) => const HomeScreen()),
-          GoRoute(
-            path: '/help',
-            builder: (_, __) => const HelpScreen(),
-            routes: [
-              GoRoute(
-                path: 'form',
-                builder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>? ?? {};
-                  return CategoryFormScreen(
-                    categoryId: extra['category'] as String? ?? 'RESCUE',
-                    categoryTitle: extra['title'] as String? ?? 'KURTARMA',
-                  );
-                },
-              ),
-            ],
-          ),
-          GoRoute(path: '/tasks',   builder: (_, __) => const TasksScreen()),
-          GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
-        ],
-      ),
-    ],
-  );
+          },
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const RegisterScreen(),
+        ),
+        ShellRoute(
+          builder: (context, state, child) => _ScaffoldWithNav(child: child),
+          routes: [
+            GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
+            GoRoute(
+              path: '/help',
+              builder: (_, __) => const HelpScreen(),
+              routes: [
+                GoRoute(
+                  path: 'form',
+                  builder: (context, state) {
+                    final extra = state.extra as Map<String, dynamic>? ?? {};
+                    return CategoryFormScreen(
+                      categoryId: extra['category'] as String? ?? 'RESCUE',
+                      categoryTitle: extra['title'] as String? ?? 'KURTARMA',
+                    );
+                  },
+                ),
+              ],
+            ),
+            GoRoute(path: '/tasks', builder: (_, __) => const TasksScreen()),
+            GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _ScaffoldWithNav extends StatefulWidget {
@@ -119,8 +125,7 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFF1B2E45),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           '📍 Konum İzni',
           style: TextStyle(
@@ -144,8 +149,7 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text(
               'Şimdi Değil',
-              style: TextStyle(
-                  color: Color(0xFF8899AA), fontFamily: 'Nunito'),
+              style: TextStyle(color: Color(0xFF8899AA), fontFamily: 'Nunito'),
             ),
           ),
           ElevatedButton(
@@ -182,9 +186,9 @@ class _ScaffoldWithNavState extends State<_ScaffoldWithNav> {
         currentIndex: currentIndex,
         onTap: (index) {
           switch (index) {
-            case 0: context.go('/');        break;
-            case 1: context.go('/help');    break;
-            case 2: context.go('/tasks');   break;
+            case 0: context.go('/');       break;
+            case 1: context.go('/help');   break;
+            case 2: context.go('/tasks');  break;
             case 3: context.go('/profile'); break;
           }
         },

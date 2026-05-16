@@ -38,19 +38,10 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> login(String phone, String password) async {
     _isLoading = true;
-     print("sa");
-    
     notifyListeners();
     try {
-      print("as");
-      final result =
-          await _authService.login(phone: phone, password: password);
-          print("log 4ez ");
-
+      final result = await _authService.login(phone: phone, password: password);
       await _saveAuth(result.token, result.user);
-          print("kedi");
-
-
     } finally {
       _isLoading = false;
       notifyListeners();

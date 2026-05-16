@@ -22,7 +22,8 @@ class AppConstants {
     defaultValue: 'http://10.94.25.1',
   );
   static const String esp32PingUrl = '$esp32BaseUrl/ping';
-  static const String esp32SosUrl = '$esp32BaseUrl/sos';
+  static const String esp32SosUrl  = '$esp32BaseUrl/sos';
+  static const String esp32WsUrl   = 'ws://10.94.25.1/ws/mobile';
 
   // Harita - Balıkesir merkezi
   static const double mapLat = 39.6484;
