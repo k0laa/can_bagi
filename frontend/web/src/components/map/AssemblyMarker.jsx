@@ -3,6 +3,8 @@ import { icons } from '../../utils/mapIcons';
 import Button from '../ui/Button';
 
 const AssemblyMarker = ({ data, onEdit }) => {
+  if (data.lat == null || data.lon == null) return null;
+
   const pct = data.capacity > 0
     ? Math.round((data.current_count / data.capacity) * 100)
     : 0;

@@ -4,6 +4,7 @@ class UserModel {
   final String surname;
   final String phone;
   final String bloodType;
+  final String? skills;
 
   const UserModel({
     required this.id,
@@ -11,6 +12,7 @@ class UserModel {
     required this.surname,
     required this.phone,
     required this.bloodType,
+    this.skills,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -19,6 +21,7 @@ class UserModel {
     surname:   json['surname']    as String,
     phone:     json['phone']      as String,
     bloodType: json['blood_type'] as String? ?? '',
+    skills:    json['skills']     as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -27,14 +30,16 @@ class UserModel {
     'surname':    surname,
     'phone':      phone,
     'blood_type': bloodType,
+    'skills':     skills,
   };
 
-  UserModel copyWith({String? name, String? surname, String? bloodType}) =>
+  UserModel copyWith({String? name, String? surname, String? bloodType, String? skills}) =>
       UserModel(
         id:        id,
         name:      name      ?? this.name,
         surname:   surname   ?? this.surname,
         phone:     phone,
         bloodType: bloodType ?? this.bloodType,
+        skills:    skills    ?? this.skills,
       );
 }

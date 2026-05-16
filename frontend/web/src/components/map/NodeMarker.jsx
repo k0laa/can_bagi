@@ -2,6 +2,8 @@ import { Marker, Popup } from 'react-leaflet';
 import { icons, formatTime } from '../../utils/mapIcons';
 
 const NodeMarker = ({ data }) => {
+  if (data.lat == null || data.lon == null) return null;
+
   const isActive = data.status === 'active';
   const heapKB = data.free_heap ? Math.round(data.free_heap / 1024) : 0;
 

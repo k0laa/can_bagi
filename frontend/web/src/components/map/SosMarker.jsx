@@ -8,6 +8,8 @@ import { showToast } from '../../store/toastStore';
 const SosMarker = ({ data, onCreateTask }) => {
   const removeSOS = useMapStore((s) => s.removeSOS);
 
+  if (data.lat == null || data.lon == null) return null;
+
   const handleResolve = async () => {
     try {
       removeSOS(data.id);

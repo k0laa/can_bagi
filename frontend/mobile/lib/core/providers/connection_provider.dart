@@ -47,7 +47,16 @@ class ConnectionProvider extends ChangeNotifier {
       return;
     }
 
-    // Ağ var, internet var mı kontrol et
+    // 1) Önce backend'e doğrudan eriş — LAN-only senaryolarında bu yeterli.
+    try {
+      final res = await _dio.get('${AppConstants.apiBaseUrl}/docs');
+      if (res.statusCode != null && res.statusCode! < 500) {
+        _updateType(ConnectionType.internet);
+        return;
+      }
+    } catch (_) {}
+
+    // 2) Backend yoksa genel internet erişimi var mı?
     try {
       final lookup = await InternetAddress.lookup('google.com')
           .timeout(const Duration(seconds: 2));

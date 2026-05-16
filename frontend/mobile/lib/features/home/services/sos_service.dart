@@ -36,6 +36,9 @@ class SosResponse {
 class NoConnectionException implements Exception {
   final String message;
   const NoConnectionException([this.message = 'Bağlantı kurulamadı.']);
+
+  @override
+  String toString() => message;
 }
 
 class SosService {
@@ -49,12 +52,11 @@ class SosService {
     double? lat,
     double? lon,
   }) async {
-    final payload = {
-      'type': 'SOS',
+    // Backend /sos/ şeması: { node_id?, lat?, lon? }
+    final payload = <String, dynamic>{
       'node_id': 'MOBILE',
-      'ts': DateTime.now().millisecondsSinceEpoch,
-      'lat': lat,
-      'lon': lon,
+      if (lat != null) 'lat': lat,
+      if (lon != null) 'lon': lon,
     };
 
     // 1. İnternet varsa backend'e gönder
@@ -64,7 +66,14 @@ class SosService {
 
     // 2. ESP32 bağlıysa ESP32'ye gönder
     if (connectionType == ConnectionType.esp32) {
-      return await _postToESP32(payload);
+      // ESP32 için eski yapıyı koru
+      return await _postToESP32({
+        'type': 'SOS',
+        'node_id': 'MOBILE',
+        'ts': DateTime.now().millisecondsSinceEpoch,
+        'lat': lat,
+        'lon': lon,
+      });
     }
 
     // 3. Hiçbiri yok
@@ -79,13 +88,16 @@ class SosService {
       );
       return SosResponse.fromJson(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      // Geliştirme sırasında backend kapalıysa mock dön — release'de gerçek hata fırlat
-      if (kDebugMode &&
-          (e.type == DioExceptionType.connectionError ||
-              e.type == DioExceptionType.connectionTimeout)) {
-        return SosResponse.mock();
+      // Gerçek hatayı yüzeye çıkar — sessiz mock fallback YOK.
+      if (kDebugMode) {
+        debugPrint('SOS POST hata: ${e.type} · status=${e.response?.statusCode} · body=${e.response?.data}');
       }
-      throw const NoConnectionException('Sunucuya ulaşılamıyor');
+      final body = e.response?.data;
+      String detail = '';
+      if (body is Map && body['detail'] != null) detail = ' · ${body['detail']}';
+      throw NoConnectionException(
+        'SOS gönderilemedi (HTTP ${e.response?.statusCode ?? '-'})$detail',
+      );
     }
   }
 
@@ -100,10 +112,8 @@ class SosService {
         ),
       );
       return SosResponse.fromJson(res.data as Map<String, dynamic>);
-    } on DioException {
-      // Geliştirme sırasında ESP32 yoksa mock dön — release'de gerçek hata fırlat
-      if (kDebugMode) return SosResponse.mock();
-      throw const NoConnectionException('ESP32 yanıt vermiyor');
+    } on DioException catch (e) {
+      throw NoConnectionException('ESP32 ile gönderilemedi: ${e.message}');
     }
   }
 }

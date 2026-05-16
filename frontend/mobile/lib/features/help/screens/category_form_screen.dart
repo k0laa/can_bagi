@@ -94,44 +94,52 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
       }
     }
 
-    // Build payload
-    final payload = <String, dynamic>{
-      'type': 'REQUEST',
-      'node_id': 'MOBILE',
-      'ts': DateTime.now().millisecondsSinceEpoch,
-      'category': widget.categoryId,
-      'lat': lat,
-      'lon': lon,
-      'people_count': _peopleCount,
-      'details': _detailsCtr.text.trim(),
-    };
+    // Kategori-özel ek bilgileri details metnine ekle
+    // (Backend /needs/ şeması ekstra alanları kabul etmiyor)
+    final extras = <String>[];
+    final baseDetails = _detailsCtr.text.trim();
+    if (baseDetails.isNotEmpty) extras.add(baseDetails);
 
-    // Add category specific payload
     switch (widget.categoryId) {
       case 'RESCUE':
-        payload['address'] = _addressCtr.text.trim();
-        payload['floor'] = _floorCtr.text.trim();
+        final addr = _addressCtr.text.trim();
+        final floor = _floorCtr.text.trim();
+        if (addr.isNotEmpty) extras.add('Adres: $addr');
+        if (floor.isNotEmpty) extras.add('Kat: $floor');
         break;
       case 'MEDICAL':
-        payload['urgency'] = _medicalUrgency;
-        payload['injury_type'] = _injuryTypeCtr.text.trim();
+        extras.add('Aciliyet: $_medicalUrgency');
+        final inj = _injuryTypeCtr.text.trim();
+        if (inj.isNotEmpty) extras.add('Yaralanma: $inj');
         break;
       case 'FOOD':
-        payload['needs_baby_food'] = _needsBabyFood;
+        if (_needsBabyFood) extras.add('Bebek maması gerekli');
         break;
       case 'SHELTER':
-        payload['needs_tent'] = _needsTent;
-        payload['needs_blanket'] = _needsBlanket;
+        if (_needsTent) extras.add('Çadır gerekli');
+        if (_needsBlanket) extras.add('Battaniye gerekli');
         break;
       case 'CLOTHES':
-        payload['age_group'] = _ageGroup;
-        payload['size'] = _sizeCtr.text.trim();
+        extras.add('Yaş grubu: $_ageGroup');
+        final size = _sizeCtr.text.trim();
+        if (size.isNotEmpty) extras.add('Beden: $size');
         break;
       case 'VULNERABLE':
-        payload['vulnerable_type'] = _vulnerableType;
-        payload['special_needs'] = _specialNeedsCtr.text.trim();
+        extras.add('Tür: $_vulnerableType');
+        final sn = _specialNeedsCtr.text.trim();
+        if (sn.isNotEmpty) extras.add('Özel ihtiyaç: $sn');
         break;
     }
+
+    // Backend şeması: { node_id?, category, lat?, lon?, people_count?, details? }
+    final payload = <String, dynamic>{
+      'node_id': 'MOBILE',
+      'category': widget.categoryId,
+      if (lat != null) 'lat': lat,
+      if (lon != null) 'lon': lon,
+      'people_count': _peopleCount,
+      if (extras.isNotEmpty) 'details': extras.join(' | '),
+    };
 
     try {
       final response = await _requestService.sendRequest(

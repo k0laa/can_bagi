@@ -8,6 +8,8 @@ import { showToast } from '../../store/toastStore';
 const RequestMarker = ({ data, onCreateTask }) => {
   const { removeRequest, updateRequest } = useMapStore();
 
+  if (data.lat == null || data.lon == null) return null;
+
   const handleDelete = async () => {
     try {
       removeRequest(data.id);
