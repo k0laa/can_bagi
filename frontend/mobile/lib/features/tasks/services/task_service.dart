@@ -4,7 +4,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/connection_provider.dart';
 import '../../../core/providers/websocket_provider.dart';
 import '../models/task_model.dart';
-import '../models/assembly_point_model.dart';
 
 class TaskService {
   final Dio _dio = Dio(BaseOptions(
@@ -203,72 +202,5 @@ class TaskService {
 
   // ── Mock ─────────────────────────────────────────────────────────────────
 
-  List<TaskModel> _getMockTasks() {
-    return [
-      const TaskModel(
-        id: 1,
-        type: 'FOOD_DISTRIBUTION',
-        title: 'Yardım Dağıtımı',
-        assemblyPoint: AssemblyPointModel(
-          id: 1,
-          name: 'Atatürk İlkokulu',
-          lat: 39.6484 + 0.005,
-          lon: 27.8826 + 0.005,
-        ),
-        peopleNeeded: 2,
-        startTime: '14:00',
-        endTime: '16:00',
-        description: 'Gıda paketleri dağıtımı',
-        status: 'open',
-      ),
-      const TaskModel(
-        id: 2,
-        type: 'WATER_CARRY',
-        title: 'Su/Malzeme Taşıma',
-        assemblyPoint: AssemblyPointModel(
-          id: 1,
-          name: 'Atatürk İlkokulu',
-          lat: 39.6484 + 0.005,
-          lon: 27.8826 + 0.005,
-        ),
-        peopleNeeded: 4,
-        startTime: '15:00',
-        endTime: '18:00',
-        description: 'İçme sularının çadırlara taşınması',
-        status: 'open',
-      ),
-      const TaskModel(
-        id: 3,
-        type: 'CLEANING',
-        title: 'Temizlik',
-        assemblyPoint: AssemblyPointModel(
-          id: 2,
-          name: 'Cumhuriyet Meydanı',
-          lat: 39.6484 - 0.008,
-          lon: 27.8826 - 0.002,
-        ),
-        peopleNeeded: 10,
-        startTime: '09:00',
-        endTime: '12:00',
-        description: 'Meydan çadır alanı çevre temizliği',
-        status: 'open',
-      ),
-      const TaskModel(
-        id: 4,
-        type: 'CARE',
-        title: 'Refakat',
-        assemblyPoint: AssemblyPointModel(
-          id: 2,
-          name: 'Cumhuriyet Meydanı',
-          lat: 39.6484 - 0.008,
-          lon: 27.8826 - 0.002,
-        ),
-        peopleNeeded: 1,
-        startTime: 'Hemen',
-        endTime: 'Belirsiz',
-        description: 'Yaşlı bir afetzedenin sağlık çadırına nakli',
-        status: 'open',
-      ),
-    ];
-  }
+  List<TaskModel> _getMockTasks() => [];
 }
