@@ -1,6 +1,7 @@
 # Can Bağı Mobile App
 
 ![logo](../../assets/logo_192.png)
+
 Flutter ile geliştirilmiş mobil uygulama, afet anında saha kullanıcılarının hızlı SOS ve yardım talebi göndermesini sağlar.
 
 ## Temel Özellikler
