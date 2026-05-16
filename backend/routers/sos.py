@@ -9,6 +9,7 @@ import math
 from datetime import datetime, timezone, timedelta
 from routers.auth import get_coordinator
 from ai_service import analyze_sos
+from routers.tasks import auto_assign_task
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ def haversine(lat1, lon1, lat2, lon2):
 def calculate_score(sos, all_sos):
     score = 0
 
-    # Bekleme süresi — her dakika +1
+    # Bekleme süresi
     now = datetime.now()
     diff = (now - sos.created_at).total_seconds() / 60
     score += diff
@@ -33,7 +34,7 @@ def calculate_score(sos, all_sos):
     if sos.lat and sos.lon:
         score += 10
 
-    # 100 metre içinde başka SOS var mı — her biri +5
+    # 100 metre içinde başka SOS +5
     if sos.lat and sos.lon:
         for other in all_sos:
             if other.id == sos.id:
@@ -43,8 +44,11 @@ def calculate_score(sos, all_sos):
                 if dist <= 100:
                     score += 5
 
-    return score
+    # AI skoru varsa ekle (1-10 arası, 3 ile çarp)
+    if sos.ai_score:
+        score += sos.ai_score * 3
 
+    return score
 
 @router.get("/prioritized")
 def get_prioritized_sos(db: Session = Depends(get_db)):
@@ -94,6 +98,14 @@ async def create_sos(sos: SOSCreate, db: Session = Depends(get_db)):
         "ai_score": db_sos.ai_score,
         "ai_suggestion": db_sos.ai_suggestion
     })
+    # AI otomatik görev oluştur
+    await auto_assign_task("SOS", {
+        "id": db_sos.id,
+        "lat": db_sos.lat,
+        "lon": db_sos.lon,
+        "details": db_sos.details,
+        "priority_score": db_sos.ai_score or 5
+    }, db)
 
     return db_sos
 
