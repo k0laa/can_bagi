@@ -22,16 +22,17 @@ export const mockAssembly = [
   { id: 3, name: 'Balıkesir Stadyumu', lat: 39.6440, lon: 27.8900, capacity: 1000, current_count: 0 },
 ];
 
-// Backend ile aynı task tipleri (needs/sos kategorileriyle uyumlu)
+// Backend task type enum: FOOD, TRANSPORT, DISTRIBUTION, CLEANING, ESCORT, GUIDANCE, MEDICAL, RESCUE, LOGISTICS
 export const taskTypeLabels = {
-  MEDICAL: '� Tıbbi',
-  RESCUE: '� Kurtarma',
-  FOOD: '🍞 Gıda Dağıtımı',
-  SHELTER: '🏕️ Barınma',
-  CLOTHES: '👕 Giysi',
-  VULNERABLE: '👶 Kırılgan Grup',
+  FOOD: '🍞 Gıda',
   TRANSPORT: '📦 Taşıma',
-  CLEANING: '� Temizlik',
+  DISTRIBUTION: '🚚 Dağıtım',
+  CLEANING: '🧹 Temizlik',
+  ESCORT: '🤝 Refakat',
+  GUIDANCE: '🧭 Yönlendirme',
+  MEDICAL: '🏥 Tıbbi',
+  RESCUE: '� Kurtarma',
+  LOGISTICS: '📋 Lojistik',
 };
 
 export const mockTasks = [

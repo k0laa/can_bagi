@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -67,6 +67,12 @@ const LoginPage = () => {
           </form>
 
           <div className="mt-6 pt-4 border-t border-mesh-disabled text-center">
+            <p className="font-nunito text-xs text-mesh-muted mb-2">
+              Hesabın yok mu?{' '}
+              <Link to="/register" className="text-mesh-accent hover:underline font-semibold">
+                Kayıt Ol
+              </Link>
+            </p>
             <p className="font-nunito text-xs text-mesh-disabled">
               ESP32 Mesh Ağı · Afet Koordinasyon Sistemi
             </p>

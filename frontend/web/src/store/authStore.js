@@ -39,6 +39,22 @@ const useAuthStore = create((set) => ({
     }
   },
 
+  register: async (payload) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.post('/auth/register', payload);
+      set({ loading: false });
+      return { success: true, data: response.data };
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.message;
+      set({
+        error: msg || 'Kayıt başarısız',
+        loading: false,
+      });
+      return { success: false, error: msg || 'Kayıt başarısız' };
+    }
+  },
+
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('coordinator');

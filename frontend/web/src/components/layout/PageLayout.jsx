@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import SidebarNav from './SidebarNav';
 import TopBar from './TopBar';
 import SosList from './SosList';
-import ToastContainer from '../ui/Toast';
 import useWebSocket from '../../hooks/useWebSocket';
 import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts';
 import { primeAudio } from '../../utils/soundUtils';
@@ -93,7 +92,6 @@ const PageLayout = () => {
         </button>
       )}
 
-      <ToastContainer />
     </div>
   );
 };
