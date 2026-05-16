@@ -184,7 +184,11 @@ class _LoggedInViewState extends State<_LoggedInView> {
                     color: AppColors.textSecondary)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () async {
+              Navigator.pop(context, false);
+              context.go('/');
+              await widget.auth.logout();
+            },
             child: Text('Çıkış Yap',
                 style: AppTextStyles.caption.copyWith(
                     color: AppColors.danger)),
@@ -193,8 +197,7 @@ class _LoggedInViewState extends State<_LoggedInView> {
       ),
     );
     if (confirm == true && mounted) {
-      context.go('/');
-      await widget.auth.logout();
+      // navigasyon dialog butonunda yapıldı
     }
   }
 
