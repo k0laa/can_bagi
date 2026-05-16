@@ -62,39 +62,28 @@ class SosService {
 
   /// Deprem düdük sesini çalar - online kaynaktan
   /// Enkaz altında kalan kişilerin dikkat çekmesi için tasarlandı
-  Future<void> playEmergencySiren({bool looping = true}) async {
-    try {
-      if (!_isAudioInitialized) {
-        _initializeAudio();
-      }
-
-      // Deprem düdük sesi - assets klasöründen
-      await _audioPlayer.setLoopMode(
-        looping ? LoopMode.all : LoopMode.off,
-      );
-      await _audioPlayer.setVolume(1.0); // Maksimum ses
-      
-      // Asset olarak yükle, bulunamazsa fallback sesi kullan
-      try {
-        await _audioPlayer.play(AssetSource('sounds/earthquake_siren.mp3'));
-      } catch (e) {
-        // Asset yoksa URL'den indir
-        if (kDebugMode) {
-          debugPrint('Asset yüklenemedi, URL kaynağından denenecek: $e');
-        }
-        // Fallback: online earthquake siren sound
-        // Bu örnek sound effect API'sinden
-      }
-
-      if (kDebugMode) {
-        debugPrint('Deprem düdük sesi çalmaya başladı');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Deprem düdük sesi çalma hatası: $e');
-      }
+Future<void> playEmergencySiren({bool looping = true}) async {
+  try {
+    if (!_isAudioInitialized) {
+      _initializeAudio();
     }
+
+    await _audioPlayer.setLoopMode(
+      looping ? LoopMode.one : LoopMode.off,
+    );
+    await _audioPlayer.setVolume(1.0);
+
+    final duration = await _audioPlayer.setAsset(
+      'assets/sounds/mixkit-alert-alarm-1005.wav'
+    );
+    debugPrint('Süre: $duration'); // null gelirse dosya bozuk
+    await _audioPlayer.play();
+
+  } catch (e) {
+    debugPrint('HATA DETAYI: $e');
+    debugPrint('HATA TIPI: ${e.runtimeType}');
   }
+}
 
   /// Telefonun varsayılan alarm sesini çalar
   Future<void> playAlertSound({bool looping = true}) async {
@@ -108,9 +97,8 @@ class SosService {
       );
       await _audioPlayer.setVolume(0.9);
       // Sistem alarm sesi (URL olarak)
-      await _audioPlayer.play(
-        AssetSource('sounds/earthquake_siren.mp3'),
-      );
+      await _audioPlayer.setAsset('assets/sounds/mixkit-alert-alarm-1005.wav');
+      await _audioPlayer.play();
 
       if (kDebugMode) {
         debugPrint('Alarm sesi çalmaya başladı');
