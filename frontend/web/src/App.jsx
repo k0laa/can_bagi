@@ -8,6 +8,7 @@ import TasksPage from './pages/TasksPage';
 import NodesPage from './pages/NodesPage';
 import AssemblyPage from './pages/AssemblyPage';
 import UsersPage from './pages/UsersPage';
+import AIChatPage from './pages/AIChatPage';
 import ToastContainer from './components/ui/Toast';
 
 const ProtectedRoute = ({ children }) => {
@@ -56,6 +57,7 @@ const App = () => {
           <Route path="nodes" element={<NodesPage />} />
           <Route path="assembly" element={<AssemblyPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="ai" element={<AIChatPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

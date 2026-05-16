@@ -25,6 +25,7 @@ export const useKeyboardShortcuts = () => {
         case '3': navigate('/nodes'); break;
         case '4': navigate('/assembly'); break;
         case '5': navigate('/users'); break;
+        case '6': navigate('/ai'); break;
         default: return;
       }
     };
