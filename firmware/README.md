@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # Can Bağı Firmware
 
 Firmware klasörü ESP32 tabanlı saha cihazlarının çalıştırıldığı kodu içerir. Bu kodlar mesh ağı üzerinden haberleşmeyi ve mobil cihazlarla bağlantıyı sağlar.
@@ -174,4 +173,3 @@ Flutter Mobil App                         React Web Dashboard
 ## Daha Fazla Detay
 
 - Alt klasörlerdeki README dosyaları her bölümün çalışma şeklini açıklar
->>>>>>> Stashed changes
