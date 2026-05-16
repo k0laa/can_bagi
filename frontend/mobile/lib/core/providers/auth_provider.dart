@@ -65,6 +65,9 @@ class AuthProvider extends ChangeNotifier {
     required String name,
     required String surname,
     required String bloodType,
+    String? skills,
+    double? lat,
+    double? lon,
   }) async {
     if (_token == null) return;
     _isLoading = true;
@@ -75,10 +78,29 @@ class AuthProvider extends ChangeNotifier {
         name:      name,
         surname:   surname,
         bloodType: bloodType,
+        skills:    skills,
+        lat:       lat,
+        lon:       lon,
       );
       _user = updated;
       await _prefs.setString(
           AppConstants.keyUser, jsonEncode(updated.toJson()));
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchProfile() async {
+    if (_token == null) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final user = await _authService.getProfile(token: _token!);
+      _user = user;
+      await _prefs.setString(AppConstants.keyUser, jsonEncode(user.toJson()));
+    } catch (_) {
+      // sessiz fail
     } finally {
       _isLoading = false;
       notifyListeners();

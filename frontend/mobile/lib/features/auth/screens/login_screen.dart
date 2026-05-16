@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/location_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/app_toast.dart';
@@ -34,6 +35,23 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await auth.login(_phoneCtr.text.trim(), _passCtr.text);
       if (mounted) {
+        // Konum al ve profil güncelle (Giriş sonrası otomatik)
+        try {
+          final loc = context.read<LocationProvider>();
+          final pos = await loc.getCurrentPosition();
+          if (pos != null && auth.user != null) {
+            await auth.updateProfile(
+              name: auth.user!.name,
+              surname: auth.user!.surname,
+              bloodType: auth.user!.bloodType,
+              skills: auth.user!.skills,
+              lat: pos.latitude,
+              lon: pos.longitude,
+            );
+          }
+        } catch (_) {}
+
+        if (!mounted) return;
         AppToast.show(context, 'Hoş geldiniz, ${auth.user?.name}!',
             type: AppToastType.success);
         if (context.canPop()) {

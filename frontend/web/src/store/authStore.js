@@ -7,12 +7,13 @@ const useAuthStore = create((set) => ({
   loading: false,
   error: null,
 
-  login: async (username, password) => {
+  login: async (phone, password) => {
     set({ loading: true, error: null });
 
-    if (username === 'test' && password === 'test') {
+    // Demo modu (backend yokken)
+    if (phone === 'test' && password === 'test') {
       const token = 'dev-test-token';
-      const coordinator = { id: 1, username: 'test', name: 'Test Koordinatör' };
+      const coordinator = { id: 1, phone: 'test', name: 'Test Koordinatör' };
       localStorage.setItem('token', token);
       localStorage.setItem('coordinator', JSON.stringify(coordinator));
       set({ token, coordinator, loading: false });
@@ -20,18 +21,37 @@ const useAuthStore = create((set) => ({
     }
 
     try {
-      const response = await api.post('/auth/login', { username, password });
-      const { token, ...coordinator } = response.data;
+      const response = await api.post('/auth/coordinator/login', { phone, password });
+      const token = response.data.access_token;
+      const coordinator = response.data.user || { phone };
+      if (!token) throw new Error('Token alınamadı');
       localStorage.setItem('token', token);
       localStorage.setItem('coordinator', JSON.stringify(coordinator));
       set({ token, coordinator, loading: false });
       return true;
     } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.message;
       set({
-        error: 'Kullanıcı adı veya şifre hatalı',
+        error: msg || 'Telefon veya şifre hatalı',
         loading: false,
       });
       return false;
+    }
+  },
+
+  register: async (payload) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await api.post('/auth/register', payload);
+      set({ loading: false });
+      return { success: true, data: response.data };
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.message;
+      set({
+        error: msg || 'Kayıt başarısız',
+        loading: false,
+      });
+      return { success: false, error: msg || 'Kayıt başarısız' };
     }
   },
 

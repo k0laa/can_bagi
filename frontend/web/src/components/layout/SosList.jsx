@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import useMapStore from '../../store/mapStore';
-
+import sosService from '../../services/sosService';
+import { showToast } from '../../store/toastStore';
 const formatTime = (ts) => {
   if (!ts) return '--:--';
   const date = new Date(typeof ts === 'number' && ts < 1e12 ? ts * 1000 : ts);
@@ -18,7 +19,56 @@ const categoryLabels = {
 
 const SosList = ({ isOpen, onToggle }) => {
   const [activeTab, setActiveTab] = useState('sos');
-  const { sosList, requestList, mapInstance } = useMapStore();
+  const { sosList, requestList, mapInstance, removeSOS, removeRequest, updateRequest } = useMapStore();
+
+  const handleResolve = async (e, id) => {
+    e.stopPropagation();
+    try {
+      removeSOS(id);
+      showToast(`SOS #${id} başarıyla kapatıldı`, 'success');
+      await sosService.resolve(id);
+    } catch (err) {
+      console.error('Failed to resolve SOS', err);
+      showToast('SOS kapatılırken hata oluştu', 'error');
+    }
+  };
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    try {
+      removeSOS(id);
+      showToast(`SOS #${id} silindi`, 'info');
+      await sosService.remove(id);
+    } catch (err) {
+      console.error('Failed to delete SOS', err);
+      showToast('SOS silinirken hata oluştu', 'error');
+    }
+  };
+
+  const handleRequestDelete = async (e, id) => {
+    e.stopPropagation();
+    try {
+      removeRequest(id);
+      showToast(`Talep #${id} silindi`, 'info');
+      await needsService.remove(id);
+    } catch (err) {
+      console.error('Failed to delete request', err);
+      showToast('Talep silinirken hata', 'error');
+    }
+  };
+
+  const handleRequestStatus = async (e, id) => {
+    e.stopPropagation();
+    const newStatus = e.target.value;
+    try {
+      updateRequest(id, { status: newStatus });
+      showToast(`Talep durumu: ${newStatus}`, 'success');
+      await needsService.setStatus(id, newStatus);
+    } catch (err) {
+      console.error('Failed to update status', err);
+      showToast('Hata oluştu', 'error');
+    }
+  };
 
   const flyTo = (lat, lon) => {
     if (mapInstance) {
@@ -79,7 +129,23 @@ const SosList = ({ isOpen, onToggle }) => {
                   <span className="font-bebas text-mesh-danger">🔴 ACİL SOS</span>
                   <span className="font-nunito text-xs text-mesh-muted">{formatTime(sos.ts)}</span>
                 </div>
-                <p className="font-nunito text-sm text-mesh-muted mt-0.5">Node: {sos.node_id}</p>
+                <div className="flex justify-between items-center mt-0.5">
+                  <p className="font-nunito text-sm text-mesh-muted">Node: {sos.node_id}</p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={(e) => handleResolve(e, sos.id)}
+                      className="text-[10px] uppercase tracking-wider font-bebas bg-mesh-disabled hover:bg-mesh-success text-white px-2 py-1 rounded transition-colors"
+                    >
+                      Çözüldü
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(e, sos.id)}
+                      className="text-[10px] uppercase tracking-wider font-bebas bg-mesh-disabled hover:bg-mesh-danger text-white px-2 py-1 rounded transition-colors"
+                    >
+                      SİL
+                    </button>
+                  </div>
+                </div>
               </div>
             ))
           )
@@ -104,10 +170,30 @@ const SosList = ({ isOpen, onToggle }) => {
                   </span>
                   <span className="font-nunito text-xs text-mesh-muted">{formatTime(req.ts)}</span>
                 </div>
-                <p className="font-nunito text-sm text-mesh-muted mt-0.5">
-                  {req.people_count} kişi
-                  {req.details ? ` · ${req.details}` : ''}
-                </p>
+                <div className="flex justify-between items-center mt-0.5">
+                  <p className="font-nunito text-sm text-mesh-muted">
+                    {req.people_count} kişi
+                    {req.details ? ` · ${req.details}` : ''}
+                  </p>
+                </div>
+                <div className="flex gap-2 items-center mt-2">
+                  <select
+                    value={req.status || 'pending'}
+                    onChange={(e) => handleRequestStatus(e, req.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 bg-mesh-disabled text-white text-[10px] p-1 rounded font-nunito border border-mesh-border outline-none focus:border-mesh-accent"
+                  >
+                    <option value="pending">Bekliyor</option>
+                    <option value="assigned">Atandı</option>
+                    <option value="resolved">Çözüldü</option>
+                  </select>
+                  <button
+                    onClick={(e) => handleRequestDelete(e, req.id)}
+                    className="text-[10px] uppercase tracking-wider font-bebas bg-mesh-disabled hover:bg-mesh-danger text-white px-2 py-1 rounded transition-colors"
+                  >
+                    SİL
+                  </button>
+                </div>
               </div>
             ))
           )

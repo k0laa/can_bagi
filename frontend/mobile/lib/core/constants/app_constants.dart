@@ -1,5 +1,9 @@
+import 'package:flutter/material.dart';
+
 class AppConstants {
   AppConstants._();
+
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   // Backend API — build sırasında --dart-define=API_URL=... ile override edilir
   // Default: Android emülatör host machine (10.0.2.2 = emülatörden bilgisayarın localhost'u)

@@ -1,24 +1,38 @@
-import { useEffect, useRef } from 'react';
+import { useRef, useState } from 'react';
 import MapContainer from '../components/map/MapContainer';
 import MapFilters from '../components/map/MapFilters';
-import useMapStore from '../store/mapStore';
-import { mockSOS, mockRequests, mockNodes, mockAssembly } from '../utils/mockData';
+import Modal from '../components/ui/Modal';
+import TaskForm from '../components/dashboard/TaskForm';
+import DashboardStatsBar from '../components/dashboard/DashboardStatsBar';
 
 const DashboardPage = () => {
   const mapRef = useRef(null);
-  const { setSosList, setRequestList, setNodeList, setAssemblyList } = useMapStore();
+  const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [taskSource, setTaskSource] = useState(null);
 
-  useEffect(() => {
-    setSosList(mockSOS);
-    setRequestList(mockRequests);
-    setNodeList(mockNodes);
-    setAssemblyList(mockAssembly);
-  }, []);
+  const handleCreateTask = (markerData) => {
+    setTaskSource(markerData);
+    setTaskFormOpen(true);
+  };
 
   return (
     <div className="relative w-full" style={{ height: '100%' }}>
-      <MapContainer mapRef={mapRef} />
+      <MapContainer mapRef={mapRef} onCreateTask={handleCreateTask} />
+      <DashboardStatsBar />
       <MapFilters />
+
+      <Modal
+        isOpen={taskFormOpen}
+        onClose={() => setTaskFormOpen(false)}
+        title={taskSource ? `Görev Oluştur — ${taskSource.node_id || ''}` : 'Görev Oluştur'}
+        size="lg"
+      >
+        <TaskForm
+          prefill={taskSource ? { lat: taskSource.lat, lon: taskSource.lon } : null}
+          onCreated={() => setTaskFormOpen(false)}
+          onCancel={() => setTaskFormOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };

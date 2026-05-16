@@ -1,8 +1,24 @@
 import { Marker, Popup } from 'react-leaflet';
 import { icons, formatTime } from '../../utils/mapIcons';
 import Button from '../ui/Button';
+import sosService from '../../services/sosService';
+import useMapStore from '../../store/mapStore';
+import { showToast } from '../../store/toastStore';
 
 const SosMarker = ({ data, onCreateTask }) => {
+  const removeSOS = useMapStore((s) => s.removeSOS);
+
+  const handleResolve = async () => {
+    try {
+      removeSOS(data.id);
+      showToast(`SOS #${data.id} başarıyla kapatıldı`, 'success');
+      await sosService.resolve(data.id);
+    } catch (e) {
+      console.error('Failed to resolve SOS', e);
+      showToast('SOS kapatılırken hata oluştu', 'error');
+    }
+  };
+
   return (
     <Marker position={[data.lat, data.lon]} icon={icons.sos}>
       <Popup className="mesh-popup">
@@ -22,14 +38,24 @@ const SosMarker = ({ data, onCreateTask }) => {
               {data.lat?.toFixed(4)}, {data.lon?.toFixed(4)}
             </p>
           </div>
-          <Button
-            variant="danger"
-            size="sm"
-            className="w-full"
-            onClick={() => onCreateTask && onCreateTask(data)}
-          >
-            Görev Oluştur
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="danger"
+              size="sm"
+              className="flex-1"
+              onClick={() => onCreateTask && onCreateTask(data)}
+            >
+              Görev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-mesh-danger text-mesh-danger hover:bg-mesh-danger hover:text-white"
+              onClick={handleResolve}
+            >
+              Çözüldü
+            </Button>
+          </div>
         </div>
       </Popup>
     </Marker>

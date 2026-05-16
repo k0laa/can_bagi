@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
 import useAuthStore from './store/authStore';
 import PageLayout from './components/layout/PageLayout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import TasksPage from './pages/TasksPage';
 import NodesPage from './pages/NodesPage';
 import AssemblyPage from './pages/AssemblyPage';
+import UsersPage from './pages/UsersPage';
+import ToastContainer from './components/ui/Toast';
 
 const ProtectedRoute = ({ children }) => {
   const token = useAuthStore((s) => s.token);
@@ -21,10 +23,9 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
-  const [wsStatus, setWsStatus] = useState('disconnected');
-
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         <Route
           path="/login"
@@ -35,10 +36,18 @@ const App = () => {
           }
         />
         <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
+        <Route
           path="/"
           element={
             <ProtectedRoute>
-              <PageLayout wsStatus={wsStatus} />
+              <PageLayout />
             </ProtectedRoute>
           }
         >
@@ -46,6 +55,7 @@ const App = () => {
           <Route path="tasks" element={<TasksPage />} />
           <Route path="nodes" element={<NodesPage />} />
           <Route path="assembly" element={<AssemblyPage />} />
+          <Route path="users" element={<UsersPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

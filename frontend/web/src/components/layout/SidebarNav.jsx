@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-  { to: '/', icon: '🗺️', label: 'Harita' },
-  { to: '/tasks', icon: '✅', label: 'Görevler' },
-  { to: '/nodes', icon: '📡', label: 'Node Durumu' },
-  { to: '/assembly', icon: '📍', label: 'Toplanma Noktaları' },
+  { to: '/', icon: '🗺️', label: 'Harita', shortcut: '1' },
+  { to: '/tasks', icon: '✅', label: 'Görevler', shortcut: '2' },
+  { to: '/nodes', icon: '📡', label: 'Node Durumu', shortcut: '3' },
+  { to: '/assembly', icon: '📍', label: 'Toplanma Noktaları', shortcut: '4' },
+  { to: '/users', icon: '👥', label: 'Kullanıcılar', shortcut: '5' },
 ];
 
 const SidebarNav = () => {
@@ -33,10 +34,19 @@ const SidebarNav = () => {
             `}
           >
             <span className="text-lg">{item.icon}</span>
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap flex-1">{item.label}</span>
+            <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-mesh-bg/60 text-mesh-disabled border border-mesh-disabled">
+              {item.shortcut}
+            </kbd>
           </NavLink>
         ))}
       </nav>
+
+      <div className="p-3 border-t border-mesh-disabled">
+        <p className="font-nunito text-[10px] text-mesh-disabled text-center">
+          🎹 1-5 tuşlarıyla geçiş
+        </p>
+      </div>
     </div>
   );
 };
