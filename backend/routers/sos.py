@@ -7,6 +7,7 @@ from websocket.manager import manager
 from websocket.events import NEW_SOS
 import math
 from datetime import datetime, timezone, timedelta
+from routers.auth import get_coordinator
 router = APIRouter()
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -94,7 +95,7 @@ def get_sos(sos_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{sos_id}")
-async def delete_sos(sos_id: int, db: Session = Depends(get_db)):
+async def delete_sos(sos_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
     db_sos = db.query(SOS).filter(SOS.id == sos_id).first()
     if not db_sos:
         raise HTTPException(status_code=404, detail="SOS bulunamadı")
@@ -103,7 +104,8 @@ async def delete_sos(sos_id: int, db: Session = Depends(get_db)):
     return {"status": "silindi"}
 
 @router.put("/{sos_id}/resolve")
-async def resolve_sos(sos_id: int, db: Session = Depends(get_db)):
+async def resolve_sos(sos_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
+    coordinator = Depends(get_coordinator)
     db_sos = db.query(SOS).filter(SOS.id == sos_id).first()
     if not db_sos:
         raise HTTPException(status_code=404, detail="SOS bulunamadı")

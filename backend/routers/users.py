@@ -8,6 +8,10 @@ from routers.auth import get_current_user, get_coordinator
 router = APIRouter()
 
 
+@router.get("/", response_model=list[UserResponse])
+def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_coordinator)):
+    return db.query(User).all()
+
 @router.get("/profile", response_model=UserResponse)
 def get_profile(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     user = db.query(User).filter(User.id == int(current_user["sub"])).first()
@@ -16,29 +20,29 @@ def get_profile(db: Session = Depends(get_db), current_user=Depends(get_current_
     return user
 
 
+    if name: user.name = name
+
 @router.put("/profile", response_model=UserResponse)
 def update_profile(
-    name: str = None,
-    surname: str = None,
-    blood_type: str = None,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+        name: str = None,
+        surname: str = None,
+        blood_type: str = None,
+        lat: float = None,
+        lon: float = None,
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user),
 ):
     user = db.query(User).filter(User.id == int(current_user["sub"])).first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
-
     if name: user.name = name
     if surname: user.surname = surname
     if blood_type: user.blood_type = blood_type
-
+    if lat: user.lat = lat
+    if lon: user.lon = lon
     db.commit()
     db.refresh(user)
     return user
-
-@router.get("/", response_model=list[UserResponse])
-def get_all_users(db: Session = Depends(get_db), current_user=Depends(get_coordinator)):
-    return db.query(User).all()
 
 
 @router.delete("/{user_id}")

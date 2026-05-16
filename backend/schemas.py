@@ -83,17 +83,24 @@ class TaskResponse(BaseModel):
 class UserCreate(BaseModel):
     name: str
     surname: str
+    skills: Optional[str] = "GENERAL"
     phone: str
     blood_type: Optional[str] = None
     password: str
+    skills: Optional[str] = "GENERAL"
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
 class UserResponse(BaseModel):
     id: int
     name: str
     surname: str
+    role: str
     phone: str
     blood_type: Optional[str]
-    is_coordinator: bool
+    skills: Optional[str] = "GENERAL"
+    lat: Optional[float] = None
+    lon: Optional[float] = None
 
     class Config:
         from_attributes = True
