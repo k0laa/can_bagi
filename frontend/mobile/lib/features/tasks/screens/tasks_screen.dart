@@ -76,11 +76,15 @@ class _TasksScreenState extends State<TasksScreen> {
       TaskModel? active;
       final openTasks = <TaskModel>[];
 
+      // Kullanıcının kabul ettiği görev: activeTaskId ile eşleşen
+      final activeTaskId = auth.user?.activeTaskId;
+
       for (final t in tasks) {
-        if (t.status == 'assigned' || t.status == 'accepted') {
-          active = t;
-        } else if (t.status == 'open' || t.status == 'pending') {
-          openTasks.add(t);
+        if (activeTaskId != null && t.id == activeTaskId) {
+          active = t; // kullanıcı kabul etti → banner
+        } else if (t.status == 'assigned' || t.status == 'accepted' ||
+            t.status == 'open' || t.status == 'pending') {
+          openTasks.add(t); // kart olarak göster → kabul/ret
         }
       }
 

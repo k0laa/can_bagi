@@ -56,9 +56,9 @@ class TaskModel {
       endTime: json['end_time'] as String? ?? 'Bilinmiyor',
       description: json['description'] as String? ?? '',
       status: json['status'] as String? ?? 'open',
-      priorityScore: json['priority_score'] as int? ?? 0,
-      maxAssignees: json['max_assignees'] as int? ?? 1,
-      currentAssignees: json['current_assignees'] as int? ?? 0,
+      priorityScore: (json['priority_score'] as num?)?.toInt() ?? 0,
+      maxAssignees: (json['max_assignees'] as num?)?.toInt() ?? 1,
+      currentAssignees: (json['current_assignees'] as num?)?.toInt() ?? 0,
       assignedTo: json['assigned_to']?.toString(),
     );
   }
