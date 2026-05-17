@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from websocket.manager import manager
-from routers import sos, tasks, needs, auth, users, nodes, mesh
+from routers import sos, tasks, needs, auth, users, nodes, mesh, ai
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +23,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/user", tags=["User"])
 app.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
 app.include_router(mesh.router, prefix="", tags=["Mesh"])
+app.include_router(ai.router, prefix="/ai", tags=["AI"])
 
 
 @app.websocket("/ws/mobile")
