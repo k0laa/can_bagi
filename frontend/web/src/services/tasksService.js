@@ -14,6 +14,7 @@ export const tasksService = {
   getAssignments: (id) =>
     api.get(`/tasks/${id}/assignments`).then((r) => r.data),
   reject: (id) => api.post(`/tasks/${id}/reject`).then((r) => r.data),
+  assign: (taskId, userId) => api.post(`/tasks/${taskId}/assign/${userId}`).then((r) => r.data),
 };
 
 export default tasksService;

@@ -16,7 +16,7 @@ const statusConfig = {
 
 const STATUS_OPTIONS = ['pending', 'assigned', 'completed'];
 
-const TaskCard = ({ task, onChangeStatus, onDelete, onMatch }) => {
+const TaskCard = ({ task, onChangeStatus, onDelete, onMatch, onManualAssign }) => {
   const mapInstance = useMapStore((s) => s.mapInstance);
   const cfg = statusConfig[task.status] || statusConfig.pending;
 
@@ -73,12 +73,18 @@ const TaskCard = ({ task, onChangeStatus, onDelete, onMatch }) => {
           <span className="text-mesh-text font-semibold">{task.assigned_to}</span>
         </div>
       ) : (
-        <div className="font-nunito text-xs mb-3">
+        <div className="font-nunito text-xs mb-3 flex gap-2 flex-wrap">
           <button
             onClick={() => onMatch && onMatch(task.id)}
             className="text-mesh-accent border border-mesh-accent px-2 py-0.5 rounded hover:bg-mesh-accent hover:text-white transition-colors"
           >
             En Uygun Gönüllüyü Bul
+          </button>
+          <button
+            onClick={() => onManualAssign && onManualAssign(task)}
+            className="text-mesh-warning border border-mesh-warning px-2 py-0.5 rounded hover:bg-mesh-warning hover:text-black transition-colors"
+          >
+            Manuel Ata
           </button>
         </div>
       )}

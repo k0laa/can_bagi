@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import EmptyState from '../components/ui/EmptyState';
 import tasksService from '../services/tasksService';
+import userService from '../services/userService';
 
 const FILTERS = [
   { key: 'all', label: 'Tümü' },
@@ -73,6 +74,29 @@ const TasksPage = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [assignModal, setAssignModal] = useState(null); // { task }
+  const [users, setUsers] = useState([]);
+  const [assigning, setAssigning] = useState(false);
+
+  useEffect(() => {
+    userService.list().then(setUsers).catch(() => {});
+  }, []);
+
+  const handleManualAssign = async (userId) => {
+    if (!assignModal) return;
+    setAssigning(true);
+    try {
+      const updated = await tasksService.assign(assignModal.task.id, userId);
+      const user = users.find((u) => u.id === userId);
+      updateTask(assignModal.task.id, { ...updated, assigned_to: user ? `${user.name} ${user.surname}` : String(userId) });
+      addToast({ type: 'success', message: 'Görev başarıyla atandı' });
+      setAssignModal(null);
+    } catch (err) {
+      addToast({ type: 'error', title: 'Atama Hatası', message: err.response?.data?.detail || err.message });
+    } finally {
+      setAssigning(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     if (activeFilter === 'all') return tasks;
@@ -132,6 +156,7 @@ const TasksPage = () => {
                 onChangeStatus={handleStatusChange}
                 onDelete={(id) => setConfirmDel(id)}
                 onMatch={handleMatch}
+                onManualAssign={(task) => setAssignModal({ task })}
               />
             ))
           )}
@@ -159,6 +184,49 @@ const TasksPage = () => {
           Bu görevi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
         </p>
       </Modal>
+
+      {assignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-mesh-card rounded-xl p-6 w-full max-w-md shadow-xl border border-mesh-disabled">
+            <h2 className="font-bebas text-2xl tracking-widest text-mesh-text mb-1">
+              MANUEL ATA
+            </h2>
+            <p className="font-nunito text-xs text-mesh-muted mb-4">
+              "{assignModal.task.title}" görevine kullanıcı seç:
+            </p>
+            <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+              {users.filter((u) => u.role === 'USER').map((u) => (
+                <button
+                  key={u.id}
+                  disabled={assigning}
+                  onClick={() => handleManualAssign(u.id)}
+                  className="flex items-center justify-between bg-mesh-bg hover:bg-mesh-accent/10 border border-mesh-disabled hover:border-mesh-accent rounded-lg px-4 py-3 transition-colors text-left"
+                >
+                  <div>
+                    <p className="font-nunito text-sm font-semibold text-mesh-text">
+                      {u.name} {u.surname}
+                    </p>
+                    <p className="font-nunito text-xs text-mesh-muted">
+                      {u.skills || 'GENERAL'} · {u.phone}
+                      {u.active_task_id && <span className="ml-2 text-mesh-warning">⚠ Aktif görevi var</span>}
+                    </p>
+                  </div>
+                  <span className="font-bebas text-sm text-mesh-accent">ATA →</span>
+                </button>
+              ))}
+              {users.filter((u) => u.role === 'USER').length === 0 && (
+                <p className="font-nunito text-sm text-mesh-muted text-center py-4">Kullanıcı bulunamadı</p>
+              )}
+            </div>
+            <button
+              onClick={() => setAssignModal(null)}
+              className="mt-4 w-full font-nunito text-sm text-mesh-muted hover:text-mesh-text transition-colors"
+            >
+              İptal
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
