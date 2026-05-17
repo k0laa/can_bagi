@@ -2,17 +2,12 @@ import math
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
 from models import Task, User
 from schemas import TaskCreate, TaskUpdate, TaskResponse
 from websocket.manager import manager
 from websocket.events import TASK_ASSIGNED, TASK_UPDATED
 from routers.auth import get_coordinator
 from routers.auth import get_coordinator, get_current_user
-=======
->>>>>>> Stashed changes
 from models import Task, User, TaskAssignment
 from schemas import TaskCreate, TaskUpdate, TaskResponse
 from websocket.manager import manager
@@ -20,10 +15,6 @@ from websocket.events import TASK_ASSIGNED, TASK_UPDATED
 from routers.auth import get_coordinator, get_current_user
 from ai_service import create_task_with_ai
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 router = APIRouter()
 
 
@@ -45,11 +36,6 @@ def get_required_skill(task_type: str) -> str:
     return mapping.get(task_type, "GENERAL")
 
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 async def auto_assign_task(event_type: str, event_data: dict, db: Session):
     users = db.query(User).filter(
         User.role == "USER",
@@ -148,10 +134,6 @@ def get_prioritized_tasks(db: Session = Depends(get_db)):
     ).order_by(Task.priority_score.desc()).all()
 
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 @router.get("/{task_id}/match")
 def match_volunteer(task_id: int, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == task_id).first()
@@ -197,20 +179,11 @@ def match_volunteer(task_id: int, db: Session = Depends(get_db)):
     }
 
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 @router.get("/{task_id}/assignments")
 def get_task_assignments(task_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
     return db.query(TaskAssignment).filter(TaskAssignment.task_id == task_id).all()
 
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 @router.post("/", response_model=TaskResponse)
 async def create_task(task: TaskCreate, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
     db_task = Task(**task.model_dump())
@@ -256,16 +229,11 @@ async def update_task(task_id: int, update: TaskUpdate, db: Session = Depends(ge
 
 @router.post("/{task_id}/accept")
 async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
     db_task = db.query(Task).filter(Task.id == task_id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Görev bulunamadı")
     db_task.status = "assigned"
     db_task.assigned_to = str(current_user["sub"])
-=======
->>>>>>> Stashed changes
     user_id = int(current_user["sub"])
     db_task = db.query(Task).filter(Task.id == task_id).first()
     if not db_task:
@@ -287,10 +255,6 @@ async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=
     if user:
         user.active_task_id = task_id
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     db.commit()
     db.refresh(db_task)
 
@@ -300,9 +264,6 @@ async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=
         "status": db_task.status,
         "assigned_to": db_task.assigned_to
     })
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
 
     return db_task
 
@@ -311,8 +272,6 @@ async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=
 async def complete_task(task_id: int, db: Session = Depends(get_db)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
     db_task.status = "completed"
-=======
->>>>>>> Stashed changes
     return db_task
 
 
@@ -369,10 +328,6 @@ async def complete_task(task_id: int, db: Session = Depends(get_db), current_use
     if assignment:
         assignment.status = "completed"
 
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     db.commit()
     db.refresh(db_task)
 
