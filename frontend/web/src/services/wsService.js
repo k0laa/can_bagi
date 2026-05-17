@@ -13,6 +13,15 @@ class WebSocketService {
     if (!token) return;
     this.shouldReconnect = true;
 
+    // Eski bağlantı varsa önce kapat
+    if (this.ws) {
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+      this.ws.onmessage = null;
+      this.ws.close();
+      this.ws = null;
+    }
+
     try {
       this.ws = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token)}`);
     } catch (err) {

@@ -85,18 +85,20 @@ export const useWebSocket = () => {
         ai_suggestion: data.ai_suggestion,
         status: "pending",
       });
-      // Atanan kullanıcıları göster (eğer var ise)
-      if (data.assigned_user_ids && Array.isArray(data.assigned_user_ids)) {
+      const isAutoAssign = data.assigned_user_ids && Array.isArray(data.assigned_user_ids);
+      if (isAutoAssign) {
         const assignments = {};
         data.assigned_user_ids.forEach((userId) => {
           assignments[userId] = "pending";
         });
         setTaskAssignments(data.id, assignments);
+        // Auto-assign toast gösterme — SOS toastı zaten çıktı
+        return;
       }
       addToast({
         type: "info",
-        title: "📋 Yeni Görev",
-        message: data.title || "Sistem tarafından otomatik oluşturuldu",
+        title: "📋 Görev Atandı",
+        message: data.title || `Görev #${data.id}`,
       });
     };
 
