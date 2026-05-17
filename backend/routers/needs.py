@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models import NeedRequest
-from schemas import NeedRequestCreate, NeedRequestResponse
+from schemas import NeedRequestCreate, NeedRequestResponse, NeedStatusUpdate
 from websocket.manager import manager
 from websocket.events import NEW_REQUEST
-from fastapi import APIRouter, Depends, HTTPException
-from routers.auth import get_coordinator
-from schemas import NeedRequestCreate, NeedRequestResponse, NeedStatusUpdate
+from routers.auth import get_coordinator, get_current_user
+from routers.tasks import auto_assign_task
 
 router = APIRouter()
 
@@ -31,6 +30,15 @@ async def create_need(need: NeedRequestCreate, db: Session = Depends(get_db)):
         "created_at": str(db_need.created_at)
     })
 
+    await auto_assign_task("NEED", {
+        "id": db_need.id,
+        "lat": db_need.lat,
+        "lon": db_need.lon,
+        "details": db_need.details,
+        "category": db_need.category,
+        "priority_score": 5
+    }, db)
+
     return db_need
 
 
@@ -44,7 +52,10 @@ def get_all_needs(status: str = None, db: Session = Depends(get_db)):
 
 @router.get("/{need_id}", response_model=NeedRequestResponse)
 def get_need(need_id: int, db: Session = Depends(get_db)):
-    return db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
+    db_need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
+    if not db_need:
+        raise HTTPException(status_code=404, detail="İhtiyaç bulunamadı")
+    return db_need
 
 
 @router.put("/{need_id}/status")
@@ -57,9 +68,9 @@ def update_status(need_id: int, update: NeedStatusUpdate, db: Session = Depends(
     db.refresh(db_need)
     return db_need
 
+
 @router.delete("/{need_id}")
 async def delete_need(need_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
-    coordinator = Depends(get_coordinator)
     db_need = db.query(NeedRequest).filter(NeedRequest.id == need_id).first()
     if not db_need:
         raise HTTPException(status_code=404, detail="İhtiyaç bulunamadı")

@@ -26,6 +26,7 @@ class SOSResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class TaskAssignmentResponse(BaseModel):
     id: int
     task_id: int
@@ -70,7 +71,7 @@ class NeedRequestResponse(BaseModel):
 
 
 class NeedStatusUpdate(BaseModel):
-    status: str  # pending, assigned, resolved
+    status: str
 
 # Task
 class TaskCreate(BaseModel):
@@ -95,9 +96,6 @@ class TaskResponse(BaseModel):
     priority_score: Optional[float] = None
     max_assignees: int = 1
     current_assignees: int = 0
-    priority_score: Optional[float] = None
-    max_assignees: int = 1
-    current_assignees: int = 0
 
     @field_serializer("created_at")
     def serialize_dt(self, v): return v.strftime("%Y-%m-%d %H:%M:%S")
@@ -114,7 +112,6 @@ class UserCreate(BaseModel):
     phone: str
     blood_type: Optional[str] = None
     password: str
-    skills: Optional[str] = "GENERAL"
     lat: Optional[float] = None
     lon: Optional[float] = None
 
@@ -128,7 +125,6 @@ class UserResponse(BaseModel):
     skills: Optional[str] = "GENERAL"
     lat: Optional[float] = None
     lon: Optional[float] = None
-    active_task_id: Optional[int] = None
     active_task_id: Optional[int] = None
 
     class Config:

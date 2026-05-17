@@ -66,6 +66,8 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         phone=user.phone,
         blood_type=user.blood_type,
         skills=user.skills,
+        lat=user.lat,
+        lon=user.lon,
         hashed_password=hash_password(user.password)
     )
     db.add(db_user)

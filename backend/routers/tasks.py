@@ -2,12 +2,6 @@ import math
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Task, User
-from schemas import TaskCreate, TaskUpdate, TaskResponse
-from websocket.manager import manager
-from websocket.events import TASK_ASSIGNED, TASK_UPDATED
-from routers.auth import get_coordinator
-from routers.auth import get_coordinator, get_current_user
 from models import Task, User, TaskAssignment
 from schemas import TaskCreate, TaskUpdate, TaskResponse
 from websocket.manager import manager
@@ -82,7 +76,8 @@ async def auto_assign_task(event_type: str, event_data: dict, db: Session):
     db.commit()
     db.refresh(db_task)
 
-    for user_id in ai_result["assigned_user_ids"]:
+    assigned_ids = ai_result.get("assigned_user_ids", [])
+    for user_id in assigned_ids:
         assignment = TaskAssignment(
             task_id=db_task.id,
             user_id=user_id,
@@ -100,8 +95,10 @@ async def auto_assign_task(event_type: str, event_data: dict, db: Session):
         "id": db_task.id,
         "title": db_task.title,
         "type": db_task.type,
+        "lat": db_task.lat,
+        "lon": db_task.lon,
         "priority_score": db_task.priority_score,
-        "assigned_user_ids": ai_result["assigned_user_ids"]
+        "assigned_user_ids": assigned_ids
     })
 
     await manager.broadcast_to_mobile(TASK_ASSIGNED, {
@@ -109,10 +106,11 @@ async def auto_assign_task(event_type: str, event_data: dict, db: Session):
         "title": db_task.title,
         "type": db_task.type,
         "lat": db_task.lat,
-        "lon": db_task.lon
+        "lon": db_task.lon,
+        "priority_score": db_task.priority_score
     })
 
-    print(f"Görev oluşturuldu: {db_task.title}, {len(ai_result['assigned_user_ids'])} kişiye atandı")
+    print(f"Görev oluşturuldu: {db_task.title}, {len(assigned_ids)} kişiye atandı")
 
 
 @router.get("/my")
@@ -209,6 +207,8 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 @router.put("/{task_id}", response_model=TaskResponse)
 async def update_task(task_id: int, update: TaskUpdate, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
     if update.status:
         db_task.status = update.status
     if update.assigned_to:
@@ -229,11 +229,6 @@ async def update_task(task_id: int, update: TaskUpdate, db: Session = Depends(ge
 
 @router.post("/{task_id}/accept")
 async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    db_task = db.query(Task).filter(Task.id == task_id).first()
-    if not db_task:
-        raise HTTPException(status_code=404, detail="Görev bulunamadı")
-    db_task.status = "assigned"
-    db_task.assigned_to = str(current_user["sub"])
     user_id = int(current_user["sub"])
     db_task = db.query(Task).filter(Task.id == task_id).first()
     if not db_task:
@@ -243,13 +238,12 @@ async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=
         TaskAssignment.task_id == task_id,
         TaskAssignment.user_id == user_id
     ).first()
-
     if not assignment:
         raise HTTPException(status_code=403, detail="Bu göreve atanmadınız")
 
     assignment.status = "accepted"
-    db_task.assigned_to = str(user_id)
     db_task.status = "assigned"
+    db_task.assigned_to = str(user_id)
 
     user = db.query(User).filter(User.id == user_id).first()
     if user:
@@ -264,14 +258,51 @@ async def accept_task(task_id: int, db: Session = Depends(get_db), current_user=
         "status": db_task.status,
         "assigned_to": db_task.assigned_to
     })
-
     return db_task
 
 
-@router.post("/{task_id}/complete")
-async def complete_task(task_id: int, db: Session = Depends(get_db)):
+@router.post("/{task_id}/assign/{user_id}")
+async def manual_assign_task(task_id: int, user_id: int, db: Session = Depends(get_db), coordinator=Depends(get_coordinator)):
     db_task = db.query(Task).filter(Task.id == task_id).first()
-    db_task.status = "completed"
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+
+    existing = db.query(TaskAssignment).filter(
+        TaskAssignment.task_id == task_id,
+        TaskAssignment.user_id == user_id
+    ).first()
+    if not existing:
+        assignment = TaskAssignment(task_id=task_id, user_id=user_id, status="accepted")
+        db.add(assignment)
+
+    db_task.status = "assigned"
+    db_task.assigned_to = str(user_id)
+    db_task.current_assignees = (db_task.current_assignees or 0) + 1
+    user.active_task_id = task_id
+
+    db.commit()
+    db.refresh(db_task)
+
+    await manager.broadcast_to_mobile(TASK_ASSIGNED, {
+        "id": db_task.id,
+        "title": db_task.title,
+        "type": db_task.type,
+        "lat": db_task.lat,
+        "lon": db_task.lon,
+        "priority_score": db_task.priority_score
+    })
+
+    await manager.broadcast_to_dashboard(TASK_ASSIGNED, {
+        "id": db_task.id,
+        "title": db_task.title,
+        "status": db_task.status,
+        "assigned_to": db_task.assigned_to
+    })
+
     return db_task
 
 
@@ -284,7 +315,6 @@ async def reject_task(task_id: int, db: Session = Depends(get_db), current_user=
         TaskAssignment.user_id == user_id,
         TaskAssignment.status == "pending"
     ).first()
-
     if not assignment:
         raise HTTPException(status_code=404, detail="Atama bulunamadı")
 
