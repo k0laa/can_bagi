@@ -114,7 +114,7 @@ const AIChatPage = () => {
               AI Asistan
             </h1>
             <p className="font-nunito text-xs text-mesh-muted">
-              Gemini destekli afet yönetim asistanı • Anlık veri analizi
+              Groq AI destekli afet yönetim asistanı • Anlık veri analizi
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -263,7 +263,7 @@ const AIChatPage = () => {
           </button>
         </div>
         <p className="font-nunito text-[10px] text-mesh-disabled mt-2 text-center">
-          Gemini AI · Veriler anlık olarak veritabanından çekilir
+          Groq AI · Veriler anlık olarak veritabanından çekilir
         </p>
       </div>
     </div>
