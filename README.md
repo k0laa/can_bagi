@@ -105,15 +105,3 @@ Afet anında klasik iletişim altyapıları yıkıldığında hayatta kalma şar
 ## Daha Fazla Detay
 
 > Alt klasörlerdeki README dosyaları her bölümün çalışma şeklini açıklar
-
-## Kullanılan Araçlar
-
-[https://www.genspark.ai/](https://www.genspark.ai/)     
-[https://claude.ai/](https://claude.ai/)    
-[https://chatgpt.com/](https://chatgpt.com/)    
-[https://gemini.google.com/](https://gemini.google.com/)    
-[https://groq.com/](https://groq.com/)    
-[https://antigravity.google/](https://antigravity.google/)    
-[https://cursor.com/](https://cursor.com/)    
-[https://www.augmentcode.com/](https://www.augmentcode.com/)    
-[https://windsurf.com/](https://windsurf.com/)    
